@@ -4,7 +4,7 @@
 
 > **Rule 0 applies to everything:** doubt this list too.
 
-![Doubt the Machine poster](assets/doubt-the-machine.jpg)
+![Doubt the Machine poster](assets/doubt-the-machine.svg)
 
 The operating loop is deliberately simple:
 
