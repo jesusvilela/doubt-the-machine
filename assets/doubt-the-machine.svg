@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1100" viewBox="0 0 1600 1100" role="img" aria-labelledby="title desc">
   <title id="title">Doubt the Machine</title>
-  <desc id="desc">Thirty practical rules for using AI without being fooled: doubt the machine, doubt the bits, doubt the build.</desc>
+  <desc id="desc">Thirty practical rules for using AI with verification and reversibility: doubt the machine, doubt the bits, doubt the build.</desc>
   <rect width="1600" height="1100" fill="#111214"/>
   <rect x="0" y="0" width="1600" height="46" fill="#f3cf3b"/>
   <text x="36" y="31" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#151515" letter-spacing="2">DOUBT · MEASURE · TEST · REVERT · DOUBT · MEASURE · TEST · REVERT</text>
@@ -17,7 +17,7 @@
 
     <rect x="579" y="112" width="290" height="58" rx="10" fill="#b9dc59"/>
     <text x="597" y="151" font-size="34" font-weight="800" fill="#111">Doubt the bits</text>
-    <text x="581" y="198" font-size="18" fill="#f0f0f0">Every answer is a guess.</text>
+    <text x="581" y="198" font-size="18" fill="#f0f0f0">Generated information needs evidence.</text>
 
     <rect x="1094" y="112" width="302" height="58" rx="10" fill="#e65f8f"/>
     <text x="1112" y="151" font-size="34" font-weight="800" fill="#111">Doubt the build</text>
@@ -38,10 +38,10 @@
       </g>
 
       <g transform="translate(581 230)">
-        <rect width="438" height="58" rx="8" fill="#4c94d8"/><text x="18" y="36" fill="#fff">1  An AI predicts; it does not know</text>
+        <rect width="438" height="58" rx="8" fill="#4c94d8"/><text x="18" y="36" fill="#fff">1  Treat output as proposal, not proof</text>
         <rect y="70" width="438" height="58" rx="8" fill="#b9dc59"/><text x="18" y="106" fill="#111">2  Fluent ≠ true</text>
-        <rect y="140" width="438" height="58" rx="8" fill="#e65f8f"/><text x="18" y="176" fill="#111">3  It can’t add facts it never had</text>
-        <rect y="210" width="438" height="58" rx="8" fill="#f3cf3b"/><text x="18" y="246" fill="#111">4  Every rewrite loses something</text>
+        <rect y="140" width="438" height="58" rx="8" fill="#e65f8f"/><text x="18" y="176" fill="#111">3  Generated detail needs provenance</text>
+        <rect y="210" width="438" height="58" rx="8" fill="#f3cf3b"/><text x="18" y="246" fill="#111">4  Every rewrite can lose something</text>
         <rect y="280" width="438" height="58" rx="8" fill="#8062c9"/><text x="18" y="316" fill="#fff">5  Long chats get noisy</text>
         <rect y="350" width="438" height="58" rx="8" fill="#ef7f32"/><text x="18" y="386" fill="#111">6  Repeat what matters</text>
         <rect y="420" width="438" height="58" rx="8" fill="#4fc5ae"/><text x="18" y="456" fill="#111">7  One answer is one sample</text>
@@ -53,17 +53,17 @@
       <g transform="translate(1096 230)">
         <rect width="438" height="58" rx="8" fill="#ef7f32"/><text x="18" y="36" fill="#111">1  “AI says it works” means nothing</text>
         <rect y="70" width="438" height="58" rx="8" fill="#4fc5ae"/><text x="18" y="106" fill="#111">2  No test, no merge</text>
-        <rect y="140" width="438" height="58" rx="8" fill="#4c94d8"/><text x="18" y="176" fill="#fff">3  Read every line before shipping</text>
+        <rect y="140" width="438" height="58" rx="8" fill="#4c94d8"/><text x="18" y="176" fill="#fff">3  Own every changed line</text>
         <rect y="210" width="438" height="58" rx="8" fill="#b9dc59"/><text x="18" y="246" fill="#111">4  Make retries safe</text>
         <rect y="280" width="438" height="58" rx="8" fill="#f3cf3b"/><text x="18" y="316" fill="#111">5  Add logs, not only features</text>
         <rect y="350" width="438" height="58" rx="8" fill="#e65f8f"/><text x="18" y="386" fill="#111">6  Ask it to delete, not just add</text>
-        <rect y="420" width="438" height="58" rx="8" fill="#8062c9"/><text x="18" y="456" fill="#fff">7  Prefer boring tools</text>
-        <rect y="490" width="438" height="58" rx="8" fill="#ef4b4b"/><text x="18" y="526" fill="#fff">8  Assume it half-works</text>
+        <rect y="420" width="438" height="58" rx="8" fill="#8062c9"/><text x="18" y="456" fill="#fff">7  Prefer inspectable dependencies</text>
+        <rect y="490" width="438" height="58" rx="8" fill="#ef4b4b"/><text x="18" y="526" fill="#fff">8  Assume partial failure</text>
         <rect y="560" width="438" height="58" rx="8" fill="#e9e9e9"/><text x="18" y="596" fill="#111">9  Small changes, easy rollback</text>
         <rect y="642" width="438" height="74" rx="8" fill="none" stroke="#ef7f32" stroke-width="4" stroke-dasharray="10 8"/><text x="18" y="688" fill="#ef7f32">0  Test this list too</text>
       </g>
     </g>
 
-    <text x="800" y="1048" text-anchor="middle" font-size="20" fill="#c8c8c8">Prediction is not knowledge · The reviewer is still you · v1 · 2026</text>
+    <text x="800" y="1048" text-anchor="middle" font-size="20" fill="#c8c8c8">Proposal ≠ proof · Evidence moves confidence · The reviewer is still you · v1.1 · 2026</text>
   </g>
 </svg>
