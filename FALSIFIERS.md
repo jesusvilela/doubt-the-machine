@@ -15,8 +15,8 @@ The claims below are deliberately narrower than “skepticism is good.” They c
 1. **No detection benefit**  
    Across preregistered matched tasks, the gated condition catches no more seeded important defects than ordinary review within uncertainty.
 
-2. **Cost dominates benefit**  
-   Any improvement in defect detection requires enough additional review time that the preregistered utility criterion is worse than ordinary review for the task class.
+2. **Operational cost overwhelms the gain**  
+   The gate catches more important defects, but only with a review-time increase or external-check burden large enough that the bounded result should be reported as operationally unattractive for that task class rather than promoted. Because no scalar utility function is preregistered, cost remains a separate Pareto coordinate, not a post-hoc exchange rate.
 
 3. **False alarms erase the gain**  
    The gate causes materially more correct work to be rejected, rewritten, or delayed without compensating reduction in important escapes.
