@@ -18,6 +18,7 @@ REQUIRED = [
     "GRAVEYARD.md",
     "EVIDENCE.md",
     "API.md",
+    "MCP.md",
     "retired.json",
     "assets/doubt-the-machine.svg",
     "experiments/001-seeded-errors/README.md",
@@ -25,6 +26,8 @@ REQUIRED = [
     "experiments/001-seeded-errors/results.csv",
     "api/gengatewai/contracts.py",
     "api/gengatewai/app.py",
+    "api/gengatewai/service.py",
+    "api/gengatewai/mcp_server.py",
     "skills/doubt-the-machine-api/SKILL.md",
     "skills/doubt-the-machine-api/references/api-contract.md",
 ]
@@ -252,6 +255,52 @@ def validate_api_contract() -> None:
         fail("GenGatewAI API contract must preserve the full crossed endpoint sample")
 
 
+def validate_mcp_contract() -> None:
+    requirements = (ROOT / "requirements.txt").read_text(encoding="utf-8")
+    if "mcp>=2.1,<3" not in requirements:
+        fail("requirements.txt must include the MCP SDK dependency")
+
+    mcp_server = (ROOT / "api/gengatewai/mcp_server.py").read_text(encoding="utf-8")
+    mcp_doc = (ROOT / "MCP.md").read_text(encoding="utf-8")
+    skill = (ROOT / "skills/doubt-the-machine-api/SKILL.md").read_text(encoding="utf-8")
+    reference = (ROOT / "skills/doubt-the-machine-api/references/api-contract.md").read_text(encoding="utf-8")
+
+    if "from mcp.server import MCPServer" not in mcp_server:
+        fail("MCP server must use the official MCP SDK server")
+    if "streamable-http" not in mcp_server or "stdio" not in mcp_server:
+        fail("MCP server must preserve stdio and streamable-http transport options")
+
+    for tool_name in (
+        "healthz",
+        "get_doubt_the_machine_contract",
+        "evaluate_doubt_gate",
+        "validate_experiment_001_records",
+        "get_experiment_001_contract",
+    ):
+        if f"def {tool_name}" not in mcp_server:
+            fail(f"MCP server missing tool: {tool_name}")
+        if tool_name not in mcp_doc:
+            fail(f"MCP.md missing tool documentation: {tool_name}")
+        if tool_name not in reference:
+            fail(f"skill API reference missing MCP tool: {tool_name}")
+
+    for uri in (
+        "gengatewai://doubt-the-machine/contract",
+        "gengatewai://experiments/001-seeded-errors",
+    ):
+        if uri not in mcp_server:
+            fail(f"MCP server missing resource: {uri}")
+        if uri not in mcp_doc:
+            fail(f"MCP.md missing resource documentation: {uri}")
+        if uri not in reference:
+            fail(f"skill API reference missing MCP resource: {uri}")
+
+    if "does not decide whether the claim is true" not in mcp_server:
+        fail("MCP server must preserve the no-truth-verdict instruction")
+    if "MCP workflow" not in skill:
+        fail("skill must document the MCP workflow")
+
+
 def validate_active_falsifiers() -> None:
     falsifiers = (ROOT / "FALSIFIERS.md").read_text(encoding="utf-8")
     if "preregistered utility criterion" in falsifiers:
@@ -315,6 +364,7 @@ def main() -> None:
     validate_preregistration()
     validate_active_falsifiers()
     validate_api_contract()
+    validate_mcp_contract()
     validate_results()
 
     print("Rule 0 contract: PASS")

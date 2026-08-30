@@ -139,6 +139,7 @@ Rule 0 now has visible artifacts rather than only a slogan:
 - [EVIDENCE.md](EVIDENCE.md) maps important rules to prior work and external evidence.
 - [Experiment 001](experiments/001-seeded-errors/README.md) preregisters the first controlled self-test.
 - [API.md](API.md) exposes the gate as the deterministic GenGatewAI API and documents the Codex skill.
+- [MCP.md](MCP.md) exposes the same contract as an MCP server for tool-capable AI hosts.
 
 **Current status:** the framework’s net effectiveness is still a **hypothesis**, not a measured result. Experiment 001 is designed to change that status or kill the claim.
 

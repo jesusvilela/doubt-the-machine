@@ -7,6 +7,14 @@ description: Use the GenGatewAI API to apply the Doubt the Machine gate, validat
 
 Use this skill when a task asks to apply, expose, test, or integrate the Doubt the Machine framework through the GenGatewAI API.
 
+## MCP workflow
+
+- If a GenGatewAI MCP server is available, use its tools before restating framework details.
+- Use `get_doubt_the_machine_contract` for the current gate contract.
+- Use `evaluate_doubt_gate` to choose verification effort and identify missing gate fields. The response is not a truth verdict.
+- Use `validate_experiment_001_records` for Experiment 001 row/schema validation.
+- Use `get_experiment_001_contract` before discussing sample size, endpoint factors, conditions, metrics, or kill/narrow conditions.
+
 ## API-first workflow
 
 - If `DTM_API_BASE_URL` is set, call the API before restating framework details.
