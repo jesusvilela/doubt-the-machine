@@ -1,0 +1,63 @@
+name: Container security contract
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev, main]
+
+permissions:
+  contents: read
+
+jobs:
+  container-contract:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Build production image
+        run: docker build --pull=false -t gengatewai:ci .
+
+      - name: Verify unprivileged runtime and minimal filesystem
+        run: |
+          test "$(docker run --rm gengatewai:ci id -u)" != "0"
+          docker run --rm gengatewai:ci sh -eu -c '
+            test ! -e /app/.git
+            test ! -e /app/.github
+            test ! -e /app/.codex
+            test ! -e /app/tests
+            test ! -e /app/web
+            test ! -e /app/.env
+            test -d /app/api
+            test -d /app/experiments
+          '
+
+      - name: Smoke test health endpoint
+        run: |
+          cid="$(docker run -d -p 127.0.0.1:18000:8000 gengatewai:ci)"
+          trap 'docker rm -f "$cid" >/dev/null 2>&1 || true' EXIT
+
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent --show-error http://127.0.0.1:18000/healthz > /tmp/healthz.json; then
+              break
+            fi
+            sleep 1
+          done
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(Path('/tmp/healthz.json').read_text())
+          assert payload['service'] == 'GenGatewAI'
+          assert payload['status'] == 'ok'
+          PY
+
+      - name: Verify image config does not declare root user
+        run: |
+          user="$(docker image inspect gengatewai:ci --format '{{.Config.User}}')"
+          test -n "$user"
+          test "$user" != "0"
+          test "$user" != "root"
