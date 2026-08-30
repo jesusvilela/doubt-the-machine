@@ -23,6 +23,8 @@ It must also expose JSON resources for:
 - `gengatewai://doubt-the-machine/contract`
 - `gengatewai://experiments/001-seeded-errors`
 
+For trusted Codex project use, `.codex/config.toml` must point `gengatewai_doubt_the_machine` at `python -m api.gengatewai.mcp_server` with the same five enabled tools.
+
 ## Evaluation behavior
 
 - Use `high` effort for experiments, metrics, kill conditions, external claims, high consequence, or hard/irreversible rollback.

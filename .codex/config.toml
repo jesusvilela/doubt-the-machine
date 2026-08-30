@@ -1,0 +1,15 @@
+[mcp_servers.gengatewai_doubt_the_machine]
+command = "python"
+args = ["-m", "api.gengatewai.mcp_server"]
+cwd = "."
+enabled = true
+startup_timeout_sec = 20
+tool_timeout_sec = 60
+default_tools_approval_mode = "auto"
+enabled_tools = [
+  "healthz",
+  "get_doubt_the_machine_contract",
+  "evaluate_doubt_gate",
+  "validate_experiment_001_records",
+  "get_experiment_001_contract",
+]

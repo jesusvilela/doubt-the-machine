@@ -6,6 +6,7 @@ from __future__ import annotations
 import csv
 import json
 import sys
+import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,6 +20,7 @@ REQUIRED = [
     "EVIDENCE.md",
     "API.md",
     "MCP.md",
+    ".codex/config.toml",
     "retired.json",
     "assets/doubt-the-machine.svg",
     "experiments/001-seeded-errors/README.md",
@@ -264,12 +266,32 @@ def validate_mcp_contract() -> None:
     mcp_doc = (ROOT / "MCP.md").read_text(encoding="utf-8")
     skill = (ROOT / "skills/doubt-the-machine-api/SKILL.md").read_text(encoding="utf-8")
     reference = (ROOT / "skills/doubt-the-machine-api/references/api-contract.md").read_text(encoding="utf-8")
+    codex_config = tomllib.loads((ROOT / ".codex/config.toml").read_text(encoding="utf-8"))
+    mcp_servers = codex_config.get("mcp_servers", {})
+    gengatewai_server = mcp_servers.get("gengatewai_doubt_the_machine", {})
 
     if "from mcp.server import MCPServer" not in mcp_server:
         fail("MCP server must use the official MCP SDK server")
     if "streamable-http" not in mcp_server or "stdio" not in mcp_server:
         fail("MCP server must preserve stdio and streamable-http transport options")
+    if gengatewai_server.get("command") != "python":
+        fail("Codex MCP config must launch the server with python")
+    if gengatewai_server.get("args") != ["-m", "api.gengatewai.mcp_server"]:
+        fail("Codex MCP config must launch api.gengatewai.mcp_server")
+    if gengatewai_server.get("cwd") != ".":
+        fail("Codex MCP config must run from the repository root")
+    if gengatewai_server.get("enabled") is not True:
+        fail("Codex MCP config must keep the GenGatewAI MCP server enabled")
 
+    expected_tools = {
+        "healthz",
+        "get_doubt_the_machine_contract",
+        "evaluate_doubt_gate",
+        "validate_experiment_001_records",
+        "get_experiment_001_contract",
+    }
+    if set(gengatewai_server.get("enabled_tools", [])) != expected_tools:
+        fail("Codex MCP config must enable exactly the expected GenGatewAI MCP tools")
     for tool_name in (
         "healthz",
         "get_doubt_the_machine_contract",
