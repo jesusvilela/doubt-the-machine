@@ -10,6 +10,8 @@ The REST API is designed to be **stateless and non-authoritative**. It evaluates
 
 Public deployments should still enforce infrastructure-level rate limits, request-body limits, TLS, abuse monitoring, and deployment protection where appropriate.
 
+The application schema rejects undeclared top-level fields, undeclared review-record fields, and gate keys outside `CLAIM / FAILURE / EVIDENCE / TEST / REVERSAL`. Declared text fields and validation batches are bounded.
+
 ### MCP
 
 The supported default MCP transport is **stdio**.
@@ -28,7 +30,7 @@ No model, agent, workflow, or API response may directly promote its own changes 
 - `dev`: integration branch for accepted feature/security work.
 - `feature/*`, `security/*`, `experiment/*`: short-lived branches targeting `dev`.
 
-Repository branch protection/rulesets should require PRs and required status checks for both `dev` and `main`. This setting is enforced at GitHub repository level, not by files in this repository.
+Repository branch protection/rulesets should require PRs and required status checks for both `dev` and `main`. This setting is enforced at GitHub repository level, not by files in this repository. The remaining repository-setting work is tracked separately because documentation is not enforcement.
 
 ## Secrets
 
@@ -39,22 +41,33 @@ Repository branch protection/rulesets should require PRs and required status che
 ## Dependency and CI supply chain
 
 - GitHub Actions are pinned to immutable commit SHAs.
-- Dependabot tracks Python, npm, and GitHub Actions dependencies.
+- Dependabot tracks Python, npm, Docker, and GitHub Actions dependencies.
 - CodeQL scans Python and JavaScript/TypeScript changes.
 - CI receives read-only repository contents unless a job explicitly requires more.
+- The production Python base image is pinned by digest; Docker Dependabot is responsible for proposing digest/version refreshes rather than silently following a mutable tag.
 
 ## Container boundary
 
 The production container runs as an unprivileged user. Build context excludes local secrets, VCS metadata, development caches, and local MCP/Codex configuration.
 
+The `Container security contract` workflow builds the actual production image and verifies:
+
+- effective runtime UID is non-root;
+- image config does not declare `root`/UID 0;
+- `/app` contains runtime API/experiment content but not VCS, Codex, tests, web sources, or `.env` material;
+- `/healthz` responds successfully from the built image.
+
+The Dockerfile text alone is not treated as evidence that these runtime properties hold.
+
 ## Security invariants
 
 1. No submitted artifact is executed.
 2. No user-controlled URL is fetched by the service.
-3. Request fields and batch sizes are bounded.
+3. Request fields and batch sizes are bounded; undeclared schema fields are rejected.
 4. Remote MCP cannot be accidentally exposed by changing only `--host`.
 5. API/MCP outputs are advisory and never a truth/security verdict.
-6. A security-control change must remain reversible and testable.
+6. Production container runtime is non-root and its minimal filesystem is tested from the built image.
+7. A security-control change must remain reversible and testable.
 
 ## Reporting a vulnerability
 
