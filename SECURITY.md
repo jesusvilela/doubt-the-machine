@@ -6,11 +6,21 @@ Doubt the Machine now exposes executable surfaces through the GenGatewAI REST AP
 
 ### REST API
 
-The REST API is designed to be **stateless and non-authoritative**. It evaluates the verification gate and validates records; it does not persist submitted artifacts, execute submitted code, fetch arbitrary URLs, hold user credentials, or decide truth.
+The REST API is designed to be **stateless and non-authoritative**. It evaluates the verification gate and validates records; it does not persist submitted artifacts, execute submitted code, fetch arbitrary user-provided URLs, hold user credentials, or decide truth.
 
 Public deployments should still enforce infrastructure-level rate limits, request-body limits, TLS, abuse monitoring, and deployment protection where appropriate.
 
 The application schema rejects undeclared top-level fields, undeclared review-record fields, and gate keys outside `CLAIM / FAILURE / EVIDENCE / TEST / REVERSAL`. Declared text fields and validation batches are bounded.
+
+### Local model recruitment
+
+The OpenAI-compatible runner can optionally recruit local LM Studio and Ollama capacity. This is disabled by default.
+
+Local detection is limited to fixed provider conventions and operator-configured environment variables. Request payloads cannot supply arbitrary provider URLs. LAN Ollama discovery is opt-in and should only be enabled on trusted local networks.
+
+Actual lab details — workstation paths, LAN addresses, model inventories, and local credentials — must stay in ignored local files such as `.env.local`, `.gengatewai.local.json`, or `local-lab.json`.
+
+The public Vercel deployment should keep local model recruitment disabled unless a separate trusted private-network boundary is deliberately configured.
 
 ### MCP
 
@@ -76,7 +86,8 @@ Do not treat deployment packaging as the only control. Public Vercel deployments
 5. API/MCP outputs are advisory and never a truth/security verdict.
 6. Production container runtime is non-root and its minimal filesystem is tested from the built image.
 7. Vercel function deployments exclude non-runtime surfaces while preserving required runtime inputs.
-8. A security-control change must remain reversible and testable.
+8. Local model recruitment is disabled by default, fixed-provider only, and never accepts arbitrary provider URLs from request payloads.
+9. A security-control change must remain reversible and testable.
 
 ## Reporting a vulnerability
 

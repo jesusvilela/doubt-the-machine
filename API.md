@@ -12,10 +12,52 @@ python -m uvicorn api.gengatewai.app:app --reload
 Then open:
 
 - `GET /healthz`
+- `GET /v1/models`
+- `POST /v1/chat/completions`
+- `GET /v1/local-models`
 - `GET /v1/gates/doubt-the-machine`
 - `POST /v1/gates/doubt-the-machine/evaluate`
 - `POST /v1/gates/doubt-the-machine/review-records/validate`
 - `GET /v1/experiments/001-seeded-errors`
+
+## OpenAI-compatible runner
+
+The API exposes a minimal OpenAI Chat Completions-compatible runner so existing clients can point their base URL at GenGatewAI:
+
+```bash
+curl http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gengatewai/doubt-runner",
+    "messages": [
+      {"role": "user", "content": "CLAIM: This output is safe to deploy.\nFAILURE: hidden production regression"}
+    ]
+  }'
+```
+
+The built-in model id is `gengatewai/doubt-runner`. It returns an OpenAI-shaped `chat.completion` object whose assistant message applies `DOUBT → MEASURE → TEST → REVERT → REPEAT`.
+
+This runner does not decide whether the claim is true, safe, or acceptable. Streaming and tool execution are intentionally unsupported in this slice.
+
+## Local model autodetect
+
+Local model recruitment is abstract and opt-in. It is disabled by default so public Vercel deployments do not probe local or private networks.
+
+Set `GENGATEWAI_LOCAL_MODELS=localhost` for local-only detection:
+
+- LM Studio via `http://127.0.0.1:1234/v1/models`;
+- Ollama via `http://127.0.0.1:11434/api/tags`.
+
+Set `GENGATEWAI_LOCAL_MODELS=lan` only on a trusted local network when you want bounded LAN Ollama autodetection. Use `GENGATEWAI_LAN_OLLAMA_BASE_URLS` for explicit LAN endpoints, or `GENGATEWAI_LAN_OLLAMA_CIDRS` plus `GENGATEWAI_LAN_OLLAMA_SCAN_LIMIT` for bounded private-subnet probing.
+
+Local inventory details belong in ignored local files such as `.env.local`, `.gengatewai.local.json`, or `local-lab.json`. Do not commit workstation paths, LAN addresses, model inventories, or credentials.
+
+When local models are enabled, `GET /v1/models` also lists abstract ids such as:
+
+- `local/lmstudio/<model-id>`;
+- `local/ollama/<model-id>`.
+
+Calling `POST /v1/chat/completions` with one of those ids forwards the request to the local provider, prepends the Doubt runner system instruction, disables streaming, and appends a deterministic note that the local output is not a truth verdict.
 
 Experiment 001 is exposed as a two-ended human/AI matrix, using `origin→reviewer` labels:
 

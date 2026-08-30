@@ -5,6 +5,10 @@ from typing import Any
 SERVICE_NAME = "GenGatewAI"
 API_VERSION = "0.1.0"
 FRAMEWORK_SLUG = "doubt-the-machine"
+OPENAI_COMPATIBLE_RUNNER_MODEL = "gengatewai/doubt-runner"
+OPENAI_COMPATIBLE_ENDPOINTS = ("/v1/models", "/v1/chat/completions", "/v1/local-models")
+LOCAL_MODEL_PROVIDERS = ("lmstudio", "ollama")
+LOCAL_MODEL_DISCOVERY_MODES = ("off", "localhost", "lan")
 
 RULE_0 = "Apply this framework to itself. Doubt it, measure it, test it, and revert it when it fails."
 SCOPE = "Use this when AI output crosses the boundary from proposal into belief, decision, execution, or persistence."
@@ -125,6 +129,18 @@ def framework_contract() -> dict[str, Any]:
         },
         "endpoint_matrix": endpoint_matrix(),
         "conditions": list(CONDITIONS),
+        "openai_compatible_runner": {
+            "model": OPENAI_COMPATIBLE_RUNNER_MODEL,
+            "endpoints": list(OPENAI_COMPATIBLE_ENDPOINTS),
+            "streaming": False,
+            "tool_execution": False,
+            "local_model_providers": list(LOCAL_MODEL_PROVIDERS),
+            "local_model_discovery_modes": list(LOCAL_MODEL_DISCOVERY_MODES),
+            "local_model_discovery_default": "off",
+            "lan_autodetect": "opt-in only",
+            "does_not_call_external_models_by_default": True,
+            "does_not_decide_truth": True,
+        },
         "does_not_decide_truth": True,
     }
 
