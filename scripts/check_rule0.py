@@ -177,6 +177,14 @@ def validate_preregistration() -> None:
         fail("Experiment 001 status must remain H, M, or R; it cannot become proof by checklist")
 
 
+def validate_active_falsifiers() -> None:
+    falsifiers = (ROOT / "FALSIFIERS.md").read_text(encoding="utf-8")
+    if "preregistered utility criterion" in falsifiers:
+        fail("FALSIFIERS.md reintroduced the retired undefined utility criterion")
+    if "separate Pareto coordinate" not in falsifiers:
+        fail("FALSIFIERS.md must preserve review cost as a separate Pareto coordinate")
+
+
 def validate_results() -> None:
     results_path = ROOT / "experiments/001-seeded-errors/results.csv"
     with results_path.open(newline="", encoding="utf-8") as handle:
@@ -228,6 +236,7 @@ def main() -> None:
     validate_retired_surfaces()
     validate_readme_and_poster()
     validate_preregistration()
+    validate_active_falsifiers()
     validate_results()
 
     print("Rule 0 contract: PASS")
