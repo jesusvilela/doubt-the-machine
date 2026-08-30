@@ -1,0 +1,190 @@
+{
+  "task_id": "dtm-exp-001-seeded-errors",
+  "claim": {
+    "text": "For the tested non-trivial AI-assisted review tasks, the five-question Doubt the Machine gate reduces important-defect escape rate relative to ordinary review enough to justify its verification cost.",
+    "scope": "Matched factual, numerical, code-review, and summarization/design tasks in Experiment 001 only; no general safety or universal effectiveness claim.",
+    "status_before": "H",
+    "assumptions": [
+      "Seeded defects are representative enough to measure reviewer detection behavior.",
+      "Control and treatment receive equivalent tools, model access, task mix, severity mix, and time policy.",
+      "Important-defect severity is assigned before outcome scoring."
+    ],
+    "forbidden_promotions": [
+      "Do not claim the framework is generally safer or better for AI work from this experiment alone.",
+      "Do not claim causal benefit outside the tested task distribution.",
+      "Do not treat checklist completion as evidence of effectiveness."
+    ]
+  },
+  "specification": {
+    "intended_object": "A matched controlled comparison between ordinary review and the explicit CLAIM/FAILURE/EVIDENCE/TEST/REVERSAL gate.",
+    "invariants": [
+      "Condition assignment must not alter the answer key.",
+      "Correct no-defect tasks must exist in both conditions.",
+      "Raw task-level observations must be preserved.",
+      "Kill conditions must not be changed after results are inspected."
+    ],
+    "known_answer_cases": [
+      "A reviewer who accepts every item must have every seeded important defect counted as escaped.",
+      "A reviewer who rejects a correct no-defect item must incur a false alarm.",
+      "A seeded important defect explicitly identified before acceptance must count as caught."
+    ]
+  },
+  "implementation": {
+    "artifact": "experiments/001-seeded-errors/README.md and results.csv",
+    "commit": "preregistered on rule0-self-audit-2026-08-30 before result collection",
+    "environment": "Human or agent reviewer with the same declared model/tool/source access in both conditions; exact versions recorded with results.",
+    "live_entrypoint": "Task assignment followed by condition-specific review, decision capture, and blinded answer-key scoring.",
+    "representation": "Task-level CSV rows plus immutable task/answer-key artifacts."
+  },
+  "metric": {
+    "name": "important-defect escape profile",
+    "type": "typed_tuple",
+    "units": "primary component is escaped important defects / seeded important defects; secondary components include false-alarm rate and review minutes",
+    "direction": "partial_order",
+    "raw_before_clipping": true,
+    "semantic_invariance_claimed": true,
+    "equivalence_attacks": [
+      "Supportive, opposing, and neutral framing variants with unchanged underlying evidence.",
+      "Semantically equivalent task wording and reordered non-material details.",
+      "Matched task variants counterbalanced across conditions."
+    ]
+  },
+  "tests": {
+    "black_box": [
+      "Score final reviewer decisions against a hidden seeded-defect answer key."
+    ],
+    "structural": [
+      "Check every treatment record contains CLAIM, FAILURE, EVIDENCE, TEST, and REVERSAL responses before scoring."
+    ],
+    "property_based": [
+      "Adding an uncaught seeded important defect cannot improve the primary escape metric.",
+      "Rejecting an additional correct item cannot reduce the false-alarm count."
+    ],
+    "metamorphic": [
+      "Changing only user stance while holding evidence fixed should not systematically flip the evidence-supported conclusion."
+    ],
+    "fuzzing": [
+      "Use held-out paraphrases and task variants not seen while designing the checklist."
+    ],
+    "historical": [
+      "Re-score a fixed subset after any analysis-code change and require identical task-level classifications."
+    ]
+  },
+  "controls": {
+    "matched_baselines": [
+      "Ordinary AI-assisted review using the reviewer's normal workflow without the mandatory five-field gate."
+    ],
+    "negative_controls": [
+      "Correct no-defect tasks in every task family.",
+      "Framing-only variants where evidence and correct conclusion remain unchanged."
+    ],
+    "compute_parity": "Use the same model/tool entitlement and the same declared time policy in both conditions; record actual review minutes separately.",
+    "parameter_parity": "Not applicable: no trained model parameters are changed between conditions; record model identity and settings if configurable.",
+    "sampling_parity": "Counterbalance matched task variants and severity distribution across conditions; randomize assignment before review.",
+    "data_access_parity": "Both conditions receive identical task inputs and allowed external sources; the hidden answer key is unavailable to reviewers."
+  },
+  "preregistration": {
+    "prediction": "The Doubt gate lowers important-defect escape rate relative to control, with a measurable increase in review time.",
+    "primary_metric": "Important-defect escape rate, reported jointly with false-alarm rate and review-time distribution rather than collapsed to one unqualified score.",
+    "uncertainty_method": "Report task-level raw data and bootstrap or exact interval for the between-condition escape-rate difference; report review-time distributions and task-family stratification.",
+    "kill_condition": "Kill or narrow the effectiveness claim if important-defect escape is not lower within reported uncertainty, if false alarms erase the gain, if verification cost dominates the declared utility analysis, if held-out variants remove the effect, or if framing checks increase contrarian errors.",
+    "stop_condition": "Do not add a richer checklist, scoring ontology, or architectural layer to rescue a failed result before reporting the failure and updating GRAVEYARD.md.",
+    "promotion_rule": "A completed positive internal experiment may promote only the bounded measured statement for Experiment 001. General effectiveness requires held-out replication and an independent witness."
+  },
+  "evidence": {
+    "primary_sources": [
+      "https://arxiv.org/abs/2310.13548",
+      "https://arxiv.org/abs/2310.01798",
+      "https://arxiv.org/abs/2303.17651",
+      "https://csrc.nist.gov/publications/detail/sp/800-218/final"
+    ],
+    "execution_records": [
+      "experiments/001-seeded-errors/results.csv will contain task-level execution records; it intentionally contains only headers at preregistration time."
+    ],
+    "independent_witnesses": [
+      {
+        "name": "required replication witness",
+        "origin": "A future reviewer, task author, or scoring implementation that did not author the original benchmark or gate.",
+        "artifact": "Not yet collected; required before any general promotion."
+      }
+    ],
+    "claim_to_artifact_map": [
+      "Gate specification -> README.md",
+      "Framework falsifiers -> FALSIFIERS.md",
+      "Retired formulations -> GRAVEYARD.md",
+      "External lineage and counterevidence -> EVIDENCE.md",
+      "Experiment design and kill conditions -> experiments/001-seeded-errors/README.md",
+      "Raw observations -> experiments/001-seeded-errors/results.csv"
+    ]
+  },
+  "round_trip": {
+    "edges": [
+      {
+        "from": "requirement",
+        "to": "formal specification",
+        "preserved": ["Detect important errors without unlimited verification cost."],
+        "transformed": ["General aspiration becomes a matched controlled review comparison."],
+        "lost": ["Claims outside the selected task families."],
+        "remainder": ["External validity remains unresolved."]
+      },
+      {
+        "from": "formal specification",
+        "to": "task representation",
+        "preserved": ["Control/treatment distinction, seeded defects, correct negatives."],
+        "transformed": ["Review objects become task variants and answer keys."],
+        "lost": ["Some real-world organizational context."],
+        "remainder": ["Seed realism must be audited."]
+      },
+      {
+        "from": "task representation",
+        "to": "review execution",
+        "preserved": ["Same evidence and tool access across matched conditions."],
+        "transformed": ["Treatment adds mandatory five-field gate."],
+        "lost": ["Perfect control of reviewer learning effects."],
+        "remainder": ["Counterbalancing mitigates but does not eliminate learning."]
+      },
+      {
+        "from": "review execution",
+        "to": "measurement",
+        "preserved": ["Decisions, caught/missed defects, false alarms, elapsed time."],
+        "transformed": ["Task records become typed metrics."],
+        "lost": ["Some qualitative reasoning detail unless separately logged."],
+        "remainder": ["Qualitative audit may explain outliers without replacing primary metrics."]
+      },
+      {
+        "from": "measurement",
+        "to": "interpretation",
+        "preserved": ["Raw task rows, uncertainty, task-family stratification."],
+        "transformed": ["Observed differences become a bounded effectiveness statement or a killed claim."],
+        "lost": ["No automatic generalization beyond sample."],
+        "remainder": ["Independent replication is required."]
+      },
+      {
+        "from": "interpretation",
+        "to": "original requirement",
+        "preserved": ["Whether important escapes fell and what verification cost was paid."],
+        "transformed": ["Broad framework aspiration returns as a scoped empirical result."],
+        "lost": ["Universal safety claims remain forbidden."],
+        "remainder": ["Held-out and independent evidence determine future promotion."]
+      }
+    ]
+  },
+  "result": {
+    "observed": "Not yet observed; preregistration precedes data collection.",
+    "effect_size": "Not applicable: no observations collected yet.",
+    "uncertainty": "Not applicable before execution; the planned interval method is declared above.",
+    "status_after": "H",
+    "retired_claims": [
+      "No test, no merge as a universal rule.",
+      "Count how often it disagrees with you as a sycophancy diagnostic.",
+      "Own every changed line as a universal scaling rule.",
+      "uncertainty times consequence times irreversibility as an implied quantitative equation."
+    ],
+    "active_remainder": [
+      "Run the experiment.",
+      "Quantify uncertainty and verification cost.",
+      "Construct held-out tasks.",
+      "Obtain an independent replication witness before general promotion."
+    ]
+  }
+}
