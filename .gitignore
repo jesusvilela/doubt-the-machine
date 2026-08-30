@@ -1,0 +1,9 @@
+.pytest_cache/
+__pycache__/
+*.py[cod]
+.venv/
+.vercel/
+node_modules/
+web/node_modules/
+dist/
+coverage/

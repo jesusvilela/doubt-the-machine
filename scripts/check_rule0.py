@@ -5,19 +5,28 @@ from __future__ import annotations
 
 import csv
 import json
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from api.gengatewai import contracts as api_contracts  # noqa: E402
 
 REQUIRED = [
     "FALSIFIERS.md",
     "GRAVEYARD.md",
     "EVIDENCE.md",
+    "API.md",
     "retired.json",
     "assets/doubt-the-machine.svg",
     "experiments/001-seeded-errors/README.md",
     "experiments/001-seeded-errors/preregistration.json",
     "experiments/001-seeded-errors/results.csv",
+    "api/gengatewai/contracts.py",
+    "api/gengatewai/app.py",
+    "skills/doubt-the-machine-api/SKILL.md",
+    "skills/doubt-the-machine-api/references/api-contract.md",
 ]
 
 EXPECTED_RESULTS_COLUMNS = [
@@ -183,6 +192,27 @@ def validate_preregistration() -> None:
         fail("Experiment 001 status must remain H, M, or R; it cannot become proof by checklist")
 
 
+def validate_api_contract() -> None:
+    if tuple(api_contracts.GATE_FIELDS) != ("CLAIM", "FAILURE", "EVIDENCE", "TEST", "REVERSAL"):
+        fail("GenGatewAI API contract must preserve the five Doubt gate fields")
+    if set(api_contracts.CONDITIONS) != ALLOWED_CONDITIONS:
+        fail("GenGatewAI API contract must preserve Experiment 001 condition values")
+    if set(api_contracts.ENDPOINT_VALUES) != ALLOWED_ARTIFACT_ORIGINS:
+        fail("GenGatewAI API contract must preserve human/agent endpoint values")
+
+    sample = api_contracts.SAMPLE_PLAN
+    if sample.get("scorable_reviews_per_cohort") != 432:
+        fail("GenGatewAI API contract must preserve the 432-review per-cohort sample")
+    if sample.get("reviews_per_condition") != 144:
+        fail("GenGatewAI API contract must preserve 144 reviews per condition")
+    if sample.get("reviews_per_family_per_condition") != 36:
+        fail("GenGatewAI API contract must preserve 36 reviews per family per condition")
+    if sample.get("reviews_per_family_per_condition_per_origin") != 18:
+        fail("GenGatewAI API contract must preserve 18 reviews per family, condition, and origin")
+    if set(sample.get("artifact_origin_values", [])) != ALLOWED_ARTIFACT_ORIGINS:
+        fail("GenGatewAI API contract must preserve both artifact-origin endpoint values")
+
+
 def validate_active_falsifiers() -> None:
     falsifiers = (ROOT / "FALSIFIERS.md").read_text(encoding="utf-8")
     if "preregistered utility criterion" in falsifiers:
@@ -245,6 +275,7 @@ def main() -> None:
     validate_readme_and_poster()
     validate_preregistration()
     validate_active_falsifiers()
+    validate_api_contract()
     validate_results()
 
     print("Rule 0 contract: PASS")
