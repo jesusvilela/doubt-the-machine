@@ -1,0 +1,3 @@
+display_name: Doubt the Machine API
+short_description: Apply the Doubt the Machine gate through the GenGatewAI API.
+default_prompt: Use $doubt-the-machine-api to evaluate a claim, validate Experiment 001 records, or inspect the current framework contract.

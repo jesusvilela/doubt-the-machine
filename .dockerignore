@@ -1,0 +1,7 @@
+.git
+.pytest_cache
+.venv
+.vercel
+node_modules
+web/node_modules
+coverage
