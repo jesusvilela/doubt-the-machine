@@ -6,6 +6,9 @@ from fastapi import FastAPI, HTTPException
 
 from api.gengatewai.contracts import (
     API_VERSION,
+    DEV_LOOP,
+    OPENAI_COMPATIBLE_ENDPOINTS,
+    OPENAI_COMPATIBLE_RUNNER_MODEL,
     SERVICE_NAME,
     experiment_summary,
     framework_contract,
@@ -32,6 +35,26 @@ app = FastAPI(
     version=API_VERSION,
     summary="Deterministic API exposing the Doubt the Machine verification gate.",
 )
+
+
+@app.get("/")
+def service_index() -> dict[str, Any]:
+    return {
+        "service": SERVICE_NAME,
+        "version": API_VERSION,
+        "framework": "doubt-the-machine",
+        "loop": " → ".join(DEV_LOOP),
+        "openai_compatible_model": OPENAI_COMPATIBLE_RUNNER_MODEL,
+        "endpoints": [
+            "/healthz",
+            *OPENAI_COMPATIBLE_ENDPOINTS,
+            "/v1/gates/doubt-the-machine",
+            "/v1/gates/doubt-the-machine/evaluate",
+            "/v1/gates/doubt-the-machine/review-records/validate",
+            "/v1/experiments/001-seeded-errors",
+        ],
+        "does_not_decide_truth": True,
+    }
 
 
 @app.get("/healthz")
