@@ -20,9 +20,11 @@ Doubt the Machine is not an argument for using AI less. It is a small discipline
 
 There are three surfaces:
 
-1. **Doubt the machine** — interaction and authority.
-2. **Doubt the bits** — information and uncertainty.
-3. **Doubt the build** — execution and operations.
+| Surface | Focus | Default question |
+|---|---|---|
+| **Doubt the machine** | Interaction and authority | Who or what am I letting judge the claim? |
+| **Doubt the bits** | Information and uncertainty | What is sourced, inferred, missing, or merely fluent? |
+| **Doubt the build** | Execution and operations | What observed behavior proves this survives reality? |
 
 The poster is compressed for memory. **This README is the canonical five-minute version.** The rationale underneath it lives in [PRINCIPLES.md](PRINCIPLES.md).
 
@@ -138,6 +140,29 @@ Rule 0 now has visible artifacts rather than only a slogan:
 - [Experiment 001](experiments/001-seeded-errors/README.md) preregisters the first controlled self-test.
 
 **Current status:** the framework’s net effectiveness is still a **hypothesis**, not a measured result. Experiment 001 is designed to change that status or kill the claim.
+
+## Development cadence
+
+Use a simple tick/tock rhythm for changes to this repository:
+
+```text
+DOUBT → MEASURE → TEST → REVERT → REPEAT
+```
+
+| Cycle | Change axis | Required discipline |
+|---|---|---|
+| **Tick** | Rule content | Add, tighten, weaken, or retire a rule, and update every surface that quotes it: README, poster, retired ledger, graveyard, falsifiers, and checks where needed. |
+| **Tock** | Verification | Run an experiment, extend checker coverage, audit citations, or update evidence and results without rewording active rules. |
+
+Set the verification effort before inspecting outcomes:
+
+| Effort | Use when | Required checks |
+|---|---|---|
+| **Light** | Wording, links, or presentation only | Run the Rule 0 checker and inspect every touched surface. |
+| **Standard** | Active rules, retired-rule coverage, falsifiers, evidence ledgers, or CI checks | Run the checker, verify affected claims against their sources, and keep the rollback path explicit. |
+| **High** | Experiments, metrics, kill conditions, external claims, or anything that could rescue a failed result | Preregister the claim and failure mode, preserve controls, require independent review, and treat insufficient precision as inconclusive. |
+
+Each PR should move one major axis at a time. If a change needs both new wording and new measurement, split it. That keeps regressions attributable, hardening honest, and rollback cheap.
 
 ## What this is — and is not
 
