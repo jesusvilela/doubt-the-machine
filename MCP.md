@@ -48,7 +48,29 @@ Both resources return JSON. The Experiment 001 resource preserves the two-ended 
 
 ## Client configuration sketch
 
-Use this command as the MCP server entrypoint from a desktop host:
+For Codex, this repository ships a project-scoped MCP config at `.codex/config.toml`. Codex loads project-scoped MCP servers from trusted projects, using the same config family as `~/.codex/config.toml`.
+
+The active project entry is:
+
+```toml
+[mcp_servers.gengatewai_doubt_the_machine]
+command = "python"
+args = ["-m", "api.gengatewai.mcp_server"]
+cwd = "."
+enabled = true
+startup_timeout_sec = 20
+tool_timeout_sec = 60
+default_tools_approval_mode = "auto"
+enabled_tools = [
+  "healthz",
+  "get_doubt_the_machine_contract",
+  "evaluate_doubt_gate",
+  "validate_experiment_001_records",
+  "get_experiment_001_contract",
+]
+```
+
+For a host that expects a JSON-style command sketch, use:
 
 ```json
 {

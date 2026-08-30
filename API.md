@@ -50,6 +50,8 @@ python -m api.gengatewai.mcp_server --transport streamable-http --host 127.0.0.1
 
 See `MCP.md` for the exposed tools and resources.
 
+Codex project configuration is included at `.codex/config.toml` for trusted local use.
+
 ## Cloud targets
 
 - `vercel.json` exposes the FastAPI app through Vercel’s Python function shape.
