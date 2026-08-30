@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import ipaddress
 import json
 from typing import Any, Literal
 
@@ -45,6 +46,15 @@ def _validation_error_response(exc: ValidationError) -> dict[str, Any]:
         ],
         "does_not_decide_truth": True,
     }
+
+
+def _is_loopback_host(host: str) -> bool:
+    if host.lower() == "localhost":
+        return True
+    try:
+        return ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        return False
 
 
 @mcp.tool()
@@ -97,7 +107,11 @@ def evaluate_doubt_gate(
 @mcp.tool()
 def validate_experiment_001_records(records: list[dict[str, Any]]) -> dict[str, Any]:
     """Validate Experiment 001 review records without storing them."""
-    return validate_record_payloads(ReviewRecordsValidationRequest(records=records)).model_dump(mode="json")
+    try:
+        request = ReviewRecordsValidationRequest(records=records)
+    except ValidationError as exc:
+        return _validation_error_response(exc)
+    return validate_record_payloads(request).model_dump(mode="json")
 
 
 @mcp.tool()
@@ -142,13 +156,20 @@ def main() -> None:
     args = parse_args()
     if args.transport == "stdio":
         mcp.run("stdio")
-    else:
-        mcp.run(
-            "streamable-http",
-            host=args.host,
-            port=args.port,
-            streamable_http_path=args.path,
+        return
+
+    if not _is_loopback_host(args.host):
+        raise SystemExit(
+            "Refusing non-loopback MCP binding without an authenticated front proxy. "
+            "Bind this server to 127.0.0.1/::1 and terminate remote authentication upstream."
         )
+
+    mcp.run(
+        "streamable-http",
+        host=args.host,
+        port=args.port,
+        streamable_http_path=args.path,
+    )
 
 
 if __name__ == "__main__":

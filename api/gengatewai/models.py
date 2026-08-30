@@ -7,7 +7,18 @@ from pydantic import BaseModel, Field, NonNegativeFloat, NonNegativeInt, StringC
 
 from api.gengatewai.contracts import CONDITIONS, ENDPOINT_VALUES
 
-NonEmptyString = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
+MAX_IDENTIFIER_LENGTH = 256
+MAX_CLAIM_LENGTH = 8_192
+MAX_ARTIFACT_LENGTH = 65_536
+MAX_GATE_VALUE_LENGTH = 8_192
+MAX_NOTES_LENGTH = 8_192
+MAX_REVIEW_RECORDS = 1_000
+
+NonEmptyString = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=MAX_IDENTIFIER_LENGTH)]
+ClaimString = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=MAX_CLAIM_LENGTH)]
+ArtifactString = Annotated[str, StringConstraints(max_length=MAX_ARTIFACT_LENGTH)]
+GateValue = Annotated[str, StringConstraints(max_length=MAX_GATE_VALUE_LENGTH)]
+NotesString = Annotated[str, StringConstraints(max_length=MAX_NOTES_LENGTH)]
 
 
 class EndpointValue(str, Enum):
@@ -29,8 +40,8 @@ class Reversibility(str, Enum):
 
 
 class GateEvaluationRequest(BaseModel):
-    claim: NonEmptyString
-    artifact: str | None = None
+    claim: ClaimString
+    artifact: ArtifactString | None = None
     artifact_origin: EndpointValue
     reviewer_type: EndpointValue
     uncertainty: RiskLevel = RiskLevel.medium
@@ -39,7 +50,7 @@ class GateEvaluationRequest(BaseModel):
     external_claim: bool = False
     experiment_or_metric: bool = False
     active_rule_or_evidence_change: bool = False
-    gate: dict[str, str | None] = Field(default_factory=dict)
+    gate: dict[str, GateValue | None] = Field(default_factory=dict, max_length=5)
 
 
 class GateEvaluationResponse(BaseModel):
@@ -70,7 +81,7 @@ class ReviewRecord(BaseModel):
     reversed_after_evidence: Literal[0, 1]
     external_checks: NonNegativeInt
     review_minutes: NonNegativeFloat
-    notes: str = ""
+    notes: NotesString = ""
 
     @model_validator(mode="after")
     def validate_counts(self) -> "ReviewRecord":
@@ -82,7 +93,7 @@ class ReviewRecord(BaseModel):
 
 
 class ReviewRecordsValidationRequest(BaseModel):
-    records: list[dict[str, Any]]
+    records: list[dict[str, Any]] = Field(max_length=MAX_REVIEW_RECORDS)
 
 
 class ReviewRecordValidationError(BaseModel):

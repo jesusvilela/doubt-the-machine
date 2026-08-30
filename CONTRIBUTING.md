@@ -4,6 +4,24 @@ Contributions are welcome — especially **falsifications, counterexamples, tigh
 
 The project should improve by surviving criticism, not by collecting agreement.
 
+## Branch flow
+
+Use a small GitFlow-lite model:
+
+```text
+feature/* ─┐
+security/* ├─> dev ──promotion PR──> main
+experiment/*┘
+```
+
+- **`main`** is the stable/release surface. Do not use it as a working branch.
+- **`dev`** is the integration branch for reviewed work that has passed its local/CI checks.
+- **`feature/*`**, **`security/*`**, and **`experiment/*`** are short-lived branches. Open their PRs against `dev`.
+- Promote `dev` to `main` only through a separate PR after the integrated state has passed required checks.
+- Hotfixes start from `main`, target `main`, and must then be reconciled back into `dev`.
+
+GitHub branch protection/rulesets should require PRs and required status checks on both `dev` and `main`. Repository settings are the enforcement mechanism; this document is the human contract.
+
 ## Keep changes small
 
 Prefer one claim, one failure mode, and one inspectable change at a time. A good contribution should be easy to understand, test, and revert.
