@@ -39,6 +39,7 @@ REQUIRED_VERCELIGNORE_ENTRIES = {
 }
 
 RUNTIME_REQUIRED_PATHS = {
+    "app.py",
     "api/index.py",
     "api/gengatewai/app.py",
     "api/gengatewai/contracts.py",
@@ -48,13 +49,15 @@ RUNTIME_REQUIRED_PATHS = {
     "requirements.txt",
 }
 
+VERCEL_FUNCTION_ENTRYPOINT = "app.py"
+
 
 def vercel_config() -> dict[str, object]:
     return json.loads((ROOT / "vercel.json").read_text(encoding="utf-8"))
 
 
 def test_vercel_python_function_excludes_non_runtime_surfaces() -> None:
-    function_config = vercel_config()["functions"]["api/index.py"]
+    function_config = vercel_config()["functions"][VERCEL_FUNCTION_ENTRYPOINT]
     exclude_files = function_config["excludeFiles"]
 
     for required_pattern in REQUIRED_VERCEL_EXCLUDES:
@@ -73,8 +76,17 @@ def test_vercelignore_excludes_non_runtime_surfaces() -> None:
 
 def test_vercel_runtime_inputs_are_not_excluded() -> None:
     ignored_text = (ROOT / ".vercelignore").read_text(encoding="utf-8")
-    function_excludes = vercel_config()["functions"]["api/index.py"]["excludeFiles"]
+    function_excludes = vercel_config()["functions"][VERCEL_FUNCTION_ENTRYPOINT]["excludeFiles"]
 
     for required_path in RUNTIME_REQUIRED_PATHS:
         assert required_path not in ignored_text
         assert required_path not in function_excludes
+
+
+def test_vercel_uses_supported_fastapi_entrypoint_without_legacy_rewrite() -> None:
+    config = vercel_config()
+    assert VERCEL_FUNCTION_ENTRYPOINT in config["functions"]
+    assert "rewrites" not in config
+
+    entrypoint = (ROOT / VERCEL_FUNCTION_ENTRYPOINT).read_text(encoding="utf-8")
+    assert "from api.gengatewai.app import app" in entrypoint
