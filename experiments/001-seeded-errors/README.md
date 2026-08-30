@@ -21,14 +21,23 @@ For each cohort:
 
 A later human replication cannot be presented as confirming an agent-only run, or vice versa, without reporting the cohort difference.
 
-## The two ends: artifact origin and reviewer side
+## The two-ended mind experiment
 
-Every review has two ends, and each end has a human side and an AI side:
+Every review is treated as a two-ended mind experiment. Each end has a human side and an AI side:
 
 - the **artifact-origin end** — who or what produced the artifact under review: `human` or `agent`; and
 - the **reviewer end** — who or what performs the review: the human cohort or the agent cohort.
 
-Crossing them yields four cells: human→human, human→agent, agent→human, and agent→agent (origin→reviewer). Within one cohort run, the reviewer end is fixed, so the run covers two of the four cells; the mirrored cohort run covers the other two.
+Crossing them yields the preregistered endpoint matrix:
+
+| Artifact origin | Reviewer side | Cell |
+| --- | --- | --- |
+| `human` | `human` | `human→human` |
+| `human` | `agent` | `human→agent` |
+| `agent` | `human` | `agent→human` |
+| `agent` | `agent` | `agent→agent` |
+
+Within one cohort run, the reviewer end is fixed, so the run covers two of the four cells; the mirrored cohort run covers the other two. A human-reviewer cohort covers `human→human` and `agent→human`. An agent-reviewer cohort covers `human→agent` and `agent→agent`.
 
 `artifact_origin` is therefore a **crossed factor, not a confound**: both origin variants exist in every condition, task family, and cohort, seeded with the identical procedure, so any origin difference is measurable rather than assumed.
 

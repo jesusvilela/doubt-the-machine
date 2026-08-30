@@ -70,6 +70,11 @@ REQUIRED_PREREG = {
 ALLOWED_CONDITIONS = {"ordinary_control", "active_placebo", "doubt_gate"}
 ALLOWED_REVIEWER_TYPES = {"human", "agent"}
 ALLOWED_ARTIFACT_ORIGINS = {"human", "agent"}
+EXPECTED_ENDPOINT_CELL_LABELS = {"human→human", "human→agent", "agent→human", "agent→agent"}
+EXPECTED_PER_COHORT_ENDPOINT_CELLS = {
+    "human": {"human→human", "agent→human"},
+    "agent": {"human→agent", "agent→agent"},
+}
 BOOLEAN_FIELDS = {"accepted", "reversed_after_evidence"}
 NONNEGATIVE_INTEGER_FIELDS = {
     "seeded_defect_count",
@@ -93,6 +98,21 @@ def load_json(relative: str) -> dict:
     if not isinstance(value, dict):
         fail(f"{relative} must contain a JSON object")
     return value
+
+
+def endpoint_cell_labels(cells: object) -> set[str]:
+    if not isinstance(cells, list):
+        return set()
+    labels: set[str] = set()
+    for cell in cells:
+        if not isinstance(cell, dict):
+            continue
+        if cell.get("artifact_origin") not in ALLOWED_ARTIFACT_ORIGINS:
+            continue
+        if cell.get("reviewer_type") not in ALLOWED_REVIEWER_TYPES:
+            continue
+        labels.add(str(cell.get("label", "")))
+    return labels
 
 
 def validate_retired_surfaces() -> None:
@@ -167,6 +187,17 @@ def validate_preregistration() -> None:
         fail("Experiment 001 must retain 18 reviews per family, condition, and artifact-origin cell")
     if set(sample.get("artifact_origin_values", [])) != ALLOWED_ARTIFACT_ORIGINS:
         fail("Experiment 001 must cross both artifact-origin sides: human and agent")
+    if set(sample.get("reviewer_type_values", [])) != ALLOWED_REVIEWER_TYPES:
+        fail("Experiment 001 must preserve both reviewer endpoint sides: human and agent")
+    if endpoint_cell_labels(sample.get("endpoint_cells")) != EXPECTED_ENDPOINT_CELL_LABELS:
+        fail("Experiment 001 must preserve the four human/agent endpoint cells")
+    cohort_cells = sample.get("per_reviewer_cohort_endpoint_cells", {})
+    if not isinstance(cohort_cells, dict) or {
+        cohort: set(cohort_cells.get(cohort, [])) for cohort in EXPECTED_PER_COHORT_ENDPOINT_CELLS
+    } != EXPECTED_PER_COHORT_ENDPOINT_CELLS:
+        fail("Experiment 001 must preserve the per-cohort endpoint-cell mapping")
+    if sample.get("full_crossed_endpoint_reviews_if_both_cohorts_run") != 864:
+        fail("Experiment 001 full human/agent crossed endpoint plan must remain 864 reviews")
     if sample.get("minimum_distinct_reviewer_ids", 0) < 12:
         fail("Experiment 001 requires at least 12 distinct reviewer IDs per cohort")
     if sample.get("optional_stopping") is not False:
@@ -199,6 +230,8 @@ def validate_api_contract() -> None:
         fail("GenGatewAI API contract must preserve Experiment 001 condition values")
     if set(api_contracts.ENDPOINT_VALUES) != ALLOWED_ARTIFACT_ORIGINS:
         fail("GenGatewAI API contract must preserve human/agent endpoint values")
+    if endpoint_cell_labels(list(api_contracts.ENDPOINT_CELLS)) != EXPECTED_ENDPOINT_CELL_LABELS:
+        fail("GenGatewAI API contract must preserve the four human/agent endpoint cells")
 
     sample = api_contracts.SAMPLE_PLAN
     if sample.get("scorable_reviews_per_cohort") != 432:
@@ -211,6 +244,12 @@ def validate_api_contract() -> None:
         fail("GenGatewAI API contract must preserve 18 reviews per family, condition, and origin")
     if set(sample.get("artifact_origin_values", [])) != ALLOWED_ARTIFACT_ORIGINS:
         fail("GenGatewAI API contract must preserve both artifact-origin endpoint values")
+    if set(sample.get("reviewer_type_values", [])) != ALLOWED_REVIEWER_TYPES:
+        fail("GenGatewAI API contract must preserve both reviewer endpoint values")
+    if endpoint_cell_labels(list(sample.get("endpoint_cells", []))) != EXPECTED_ENDPOINT_CELL_LABELS:
+        fail("GenGatewAI API contract must preserve the endpoint matrix")
+    if sample.get("full_crossed_endpoint_reviews_if_both_cohorts_run") != 864:
+        fail("GenGatewAI API contract must preserve the full crossed endpoint sample")
 
 
 def validate_active_falsifiers() -> None:

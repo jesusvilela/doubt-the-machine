@@ -43,6 +43,14 @@ def test_framework_contract_exposes_gate_and_endpoints() -> None:
     assert body["rule_0"].startswith("Apply this framework")
     assert body["gate_fields"] == ["CLAIM", "FAILURE", "EVIDENCE", "TEST", "REVERSAL"]
     assert body["endpoint_values"]["artifact_origin"] == ["human", "agent"]
+    assert body["endpoint_matrix"]["reviewer_type_values"] == ["human", "agent"]
+    assert [cell["label"] for cell in body["endpoint_matrix"]["cells"]] == [
+        "human→human",
+        "human→agent",
+        "agent→human",
+        "agent→agent",
+    ]
+    assert body["endpoint_matrix"]["per_reviewer_cohort_endpoint_cells"]["human"] == ["human→human", "agent→human"]
     assert body["conditions"] == ["ordinary_control", "active_placebo", "doubt_gate"]
     assert body["does_not_decide_truth"] is True
 
@@ -137,4 +145,12 @@ def test_experiment_endpoint_exposes_tock_003_sample_plan() -> None:
     body = response.json()
     assert body["sample_plan"]["scorable_reviews_per_cohort"] == 432
     assert body["sample_plan"]["artifact_origin_values"] == ["human", "agent"]
+    assert body["sample_plan"]["reviewer_type_values"] == ["human", "agent"]
+    assert [cell["label"] for cell in body["sample_plan"]["endpoint_cells"]] == [
+        "human→human",
+        "human→agent",
+        "agent→human",
+        "agent→agent",
+    ]
+    assert body["sample_plan"]["full_crossed_endpoint_reviews_if_both_cohorts_run"] == 864
     assert body["does_not_establish_general_effectiveness"] is True

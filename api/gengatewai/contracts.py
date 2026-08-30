@@ -13,6 +13,19 @@ DEV_LOOP = ("DOUBT", "MEASURE", "TEST", "REVERT", "REPEAT")
 GATE_FIELDS = ("CLAIM", "FAILURE", "EVIDENCE", "TEST", "REVERSAL")
 CONDITIONS = ("ordinary_control", "active_placebo", "doubt_gate")
 ENDPOINT_VALUES = ("human", "agent")
+ENDPOINT_CELLS = tuple(
+    {
+        "artifact_origin": artifact_origin,
+        "reviewer_type": reviewer_type,
+        "label": f"{artifact_origin}→{reviewer_type}",
+    }
+    for artifact_origin in ENDPOINT_VALUES
+    for reviewer_type in ENDPOINT_VALUES
+)
+PER_REVIEWER_COHORT_ENDPOINT_CELLS = {
+    "human": tuple(f"{artifact_origin}→human" for artifact_origin in ENDPOINT_VALUES),
+    "agent": tuple(f"{artifact_origin}→agent" for artifact_origin in ENDPOINT_VALUES),
+}
 
 SURFACES = (
     {
@@ -71,10 +84,27 @@ SAMPLE_PLAN = {
     "task_families": ("factual_current", "numerical_analytical", "code_review", "summary_design"),
     "reviews_per_family_per_condition": 36,
     "artifact_origin_values": ENDPOINT_VALUES,
+    "reviewer_type_values": ENDPOINT_VALUES,
+    "endpoint_cells": ENDPOINT_CELLS,
+    "per_reviewer_cohort_endpoint_cells": PER_REVIEWER_COHORT_ENDPOINT_CELLS,
+    "full_crossed_endpoint_reviews_if_both_cohorts_run": 864,
     "reviews_per_family_per_condition_per_origin": 18,
     "minimum_distinct_reviewer_ids": 12,
     "optional_stopping": False,
 }
+
+
+def endpoint_matrix() -> dict[str, Any]:
+    return {
+        "interpretation": "origin→reviewer; both artifact origin and reviewer side have human and agent endpoints",
+        "artifact_origin_values": list(ENDPOINT_VALUES),
+        "reviewer_type_values": list(ENDPOINT_VALUES),
+        "cells": [dict(cell) for cell in ENDPOINT_CELLS],
+        "per_reviewer_cohort_endpoint_cells": {
+            cohort: list(cells) for cohort, cells in PER_REVIEWER_COHORT_ENDPOINT_CELLS.items()
+        },
+        "full_crossed_endpoint_reviews_if_both_cohorts_run": 864,
+    }
 
 
 def framework_contract() -> dict[str, Any]:
@@ -93,6 +123,7 @@ def framework_contract() -> dict[str, Any]:
             "artifact_origin": list(ENDPOINT_VALUES),
             "reviewer_type": list(ENDPOINT_VALUES),
         },
+        "endpoint_matrix": endpoint_matrix(),
         "conditions": list(CONDITIONS),
         "does_not_decide_truth": True,
     }
@@ -109,6 +140,7 @@ def experiment_summary(preregistration: dict[str, Any]) -> dict[str, Any]:
             "artifact_origin": list(ENDPOINT_VALUES),
             "reviewer_type": list(ENDPOINT_VALUES),
         },
+        "endpoint_matrix": endpoint_matrix(),
         "sample_plan": preregistration["sample_plan"],
         "primary_metric": gate["primary_metric"],
         "prediction": gate["prediction"],

@@ -2,7 +2,7 @@
   "task_id": "dtm-exp-001-seeded-errors",
   "claim": {
     "text": "For the tested cohort and task distribution, the five-question Doubt the Machine gate reduces important-defect escape probability relative to both ordinary review and an equal-effort placebo checklist by a practically meaningful amount without an excessive false-alarm penalty, with the artifact-origin and reviewer sides tracked as separate factors.",
-    "scope": "One preregistered human or agent reviewer cohort at a time; four matched task families; two artifact-origin sides (human, agent); 432 scorable task reviews per cohort. No pooled human-agent primary analysis and no universal safety claim.",
+    "scope": "One preregistered human or agent reviewer cohort at a time; four matched task families; a two-ended human/agent endpoint matrix with artifact-origin and reviewer sides tracked explicitly; 432 scorable task reviews per cohort. No pooled human-agent primary analysis and no universal safety claim.",
     "status_before": "H",
     "assumptions": [
       "Seeded defects are audited for plausibility before randomization, on both artifact-origin sides.",
@@ -114,6 +114,34 @@
     "task_families": ["factual_current", "numerical_analytical", "code_review", "summary_design"],
     "reviews_per_family_per_condition": 36,
     "artifact_origin_values": ["human", "agent"],
+    "reviewer_type_values": ["human", "agent"],
+    "endpoint_cells": [
+      {
+        "artifact_origin": "human",
+        "reviewer_type": "human",
+        "label": "human→human"
+      },
+      {
+        "artifact_origin": "human",
+        "reviewer_type": "agent",
+        "label": "human→agent"
+      },
+      {
+        "artifact_origin": "agent",
+        "reviewer_type": "human",
+        "label": "agent→human"
+      },
+      {
+        "artifact_origin": "agent",
+        "reviewer_type": "agent",
+        "label": "agent→agent"
+      }
+    ],
+    "per_reviewer_cohort_endpoint_cells": {
+      "human": ["human→human", "agent→human"],
+      "agent": ["human→agent", "agent→agent"]
+    },
+    "full_crossed_endpoint_reviews_if_both_cohorts_run": 864,
     "reviews_per_family_per_condition_per_origin": 18,
     "minimum_distinct_reviewer_ids": 12,
     "optional_stopping": false,
