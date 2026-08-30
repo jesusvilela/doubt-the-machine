@@ -3,7 +3,8 @@ from __future__ import annotations
 import asyncio
 import json
 
-from api.gengatewai.mcp_server import mcp
+from api.gengatewai.mcp_server import _is_loopback_host, mcp
+from api.gengatewai.models import MAX_REVIEW_RECORDS
 
 
 def run_mcp(coro):
@@ -67,8 +68,8 @@ def test_mcp_resource_preserves_endpoint_matrix() -> None:
     assert body["sample_plan"]["full_crossed_endpoint_reviews_if_both_cohorts_run"] == 864
 
 
-def test_mcp_validates_experiment_records() -> None:
-    valid_record = {
+def valid_record() -> dict[str, object]:
+    return {
         "task_id": "task-1",
         "task_family": "code_review",
         "condition": "doubt_gate",
@@ -89,7 +90,33 @@ def test_mcp_validates_experiment_records() -> None:
         "notes": "",
     }
 
-    result = run_mcp(mcp.call_tool("validate_experiment_001_records", {"records": [valid_record]}))
+
+def test_mcp_validates_experiment_records() -> None:
+    result = run_mcp(mcp.call_tool("validate_experiment_001_records", {"records": [valid_record()]}))
 
     assert result.is_error is False
     assert result.structured_content == {"valid": True, "accepted_rows": 1, "errors": []}
+
+
+def test_mcp_rejects_oversized_record_batch_without_crashing() -> None:
+    result = run_mcp(
+        mcp.call_tool(
+            "validate_experiment_001_records",
+            {"records": [valid_record()] * (MAX_REVIEW_RECORDS + 1)},
+        )
+    )
+
+    assert result.is_error is False
+    body = result.structured_content
+    assert body["valid"] is False
+    assert body["does_not_decide_truth"] is True
+    assert any("records" in error["location"] for error in body["errors"])
+
+
+def test_streamable_http_host_policy_is_loopback_only() -> None:
+    assert _is_loopback_host("127.0.0.1") is True
+    assert _is_loopback_host("::1") is True
+    assert _is_loopback_host("localhost") is True
+    assert _is_loopback_host("0.0.0.0") is False
+    assert _is_loopback_host("192.168.1.10") is False
+    assert _is_loopback_host("example.com") is False
