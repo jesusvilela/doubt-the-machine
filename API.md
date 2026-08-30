@@ -34,6 +34,22 @@ This repo ships a Codex skill at `skills/doubt-the-machine-api`.
 
 Set `DTM_API_BASE_URL` to a running deployment when you want agents to use the live API first. If the API is unavailable, the skill falls back to canonical repo files.
 
+## MCP
+
+The same deterministic contract is available as an MCP server:
+
+```bash
+python -m api.gengatewai.mcp_server
+```
+
+That starts the local stdio transport used by most desktop MCP hosts. For remote MCP clients during development:
+
+```bash
+python -m api.gengatewai.mcp_server --transport streamable-http --host 127.0.0.1 --port 8766 --path /mcp
+```
+
+See `MCP.md` for the exposed tools and resources.
+
 ## Cloud targets
 
 - `vercel.json` exposes the FastAPI app through Vercel’s Python function shape.

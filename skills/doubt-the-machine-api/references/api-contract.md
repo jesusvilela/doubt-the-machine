@@ -8,6 +8,21 @@
 - `POST /v1/gates/doubt-the-machine/review-records/validate` validates Experiment 001 review records without storing them.
 - `GET /v1/experiments/001-seeded-errors` returns the preregistered Experiment 001 design and sample plan.
 
+## MCP tools and resources
+
+The MCP server must expose the same deterministic contract without adding a truth verdict:
+
+- `healthz`
+- `get_doubt_the_machine_contract`
+- `evaluate_doubt_gate`
+- `validate_experiment_001_records`
+- `get_experiment_001_contract`
+
+It must also expose JSON resources for:
+
+- `gengatewai://doubt-the-machine/contract`
+- `gengatewai://experiments/001-seeded-errors`
+
 ## Evaluation behavior
 
 - Use `high` effort for experiments, metrics, kill conditions, external claims, high consequence, or hard/irreversible rollback.
@@ -47,4 +62,5 @@ The repo checker must pin:
 - endpoint values;
 - condition values;
 - Experiment 001 sample constants;
-- result CSV header.
+- result CSV header;
+- MCP tool names and resource URIs.
