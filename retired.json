@@ -1,5 +1,22 @@
 {
-  "version": 1,
+  "version": 2,
+  "allow_in": [
+    {
+      "path": "GRAVEYARD.md",
+      "scope": "whole_file",
+      "reason": "Canonical correction history intentionally preserves retired wording."
+    },
+    {
+      "path": "retired.json",
+      "scope": "whole_file",
+      "reason": "The machine-readable retirement ledger must name the wording it forbids elsewhere."
+    },
+    {
+      "path": "experiments/001-seeded-errors/preregistration.json",
+      "scope": "json_pointer:/result/retired_claims",
+      "reason": "Experiment correction history records retired claims without exempting the rest of the preregistration."
+    }
+  ],
   "entries": [
     {
       "id": "disagreement-count",
