@@ -1,0 +1,1 @@
+task_id,task_family,condition,variant_id,seeded_defect_count,important_defect_count,important_defects_caught,important_defects_escaped,false_alarms,accepted,reversed_after_evidence,review_minutes,notes
