@@ -25,6 +25,7 @@ EXPECTED_RESULTS_COLUMNS = [
     "task_family",
     "condition",
     "variant_id",
+    "artifact_origin",
     "reviewer_id",
     "reviewer_type",
     "cohort_id",
@@ -59,6 +60,7 @@ REQUIRED_PREREG = {
 
 ALLOWED_CONDITIONS = {"ordinary_control", "active_placebo", "doubt_gate"}
 ALLOWED_REVIEWER_TYPES = {"human", "agent"}
+ALLOWED_ARTIFACT_ORIGINS = {"human", "agent"}
 BOOLEAN_FIELDS = {"accepted", "reversed_after_evidence"}
 NONNEGATIVE_INTEGER_FIELDS = {
     "seeded_defect_count",
@@ -146,12 +148,16 @@ def validate_preregistration() -> None:
             fail(f"preregistration.{field} must be non-empty")
 
     sample = prereg.get("sample_plan", {})
-    if sample.get("scorable_reviews_per_cohort") != 216:
-        fail("Experiment 001 fixed sample must remain 216 scorable reviews per cohort")
-    if sample.get("reviews_per_condition") != 72:
-        fail("Experiment 001 must retain 72 reviews per condition")
-    if sample.get("reviews_per_family_per_condition") != 18:
-        fail("Experiment 001 must retain 18 reviews per family per condition")
+    if sample.get("scorable_reviews_per_cohort") != 432:
+        fail("Experiment 001 fixed sample must remain 432 scorable reviews per cohort (two artifact-origin blocks)")
+    if sample.get("reviews_per_condition") != 144:
+        fail("Experiment 001 must retain 144 reviews per condition")
+    if sample.get("reviews_per_family_per_condition") != 36:
+        fail("Experiment 001 must retain 36 reviews per family per condition")
+    if sample.get("reviews_per_family_per_condition_per_origin") != 18:
+        fail("Experiment 001 must retain 18 reviews per family, condition, and artifact-origin cell")
+    if set(sample.get("artifact_origin_values", [])) != ALLOWED_ARTIFACT_ORIGINS:
+        fail("Experiment 001 must cross both artifact-origin sides: human and agent")
     if sample.get("minimum_distinct_reviewer_ids", 0) < 12:
         fail("Experiment 001 requires at least 12 distinct reviewer IDs per cohort")
     if sample.get("optional_stopping") is not False:
@@ -197,6 +203,8 @@ def validate_results() -> None:
                 fail(f"results.csv:{line_number} invalid condition")
             if row["reviewer_type"] not in ALLOWED_REVIEWER_TYPES:
                 fail(f"results.csv:{line_number} reviewer_type must be human or agent")
+            if row["artifact_origin"] not in ALLOWED_ARTIFACT_ORIGINS:
+                fail(f"results.csv:{line_number} artifact_origin must be human or agent")
             for field in ("task_id", "task_family", "variant_id", "reviewer_id", "cohort_id"):
                 if not row[field].strip():
                     fail(f"results.csv:{line_number} missing {field}")

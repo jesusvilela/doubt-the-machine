@@ -1,12 +1,13 @@
 {
   "task_id": "dtm-exp-001-seeded-errors",
   "claim": {
-    "text": "For the tested cohort and task distribution, the five-question Doubt the Machine gate reduces important-defect escape probability relative to both ordinary review and an equal-effort placebo checklist by a practically meaningful amount without an excessive false-alarm penalty.",
-    "scope": "One preregistered human or agent cohort at a time; four matched task families; 216 scorable task reviews per cohort. No pooled human-agent primary analysis and no universal safety claim.",
+    "text": "For the tested cohort and task distribution, the five-question Doubt the Machine gate reduces important-defect escape probability relative to both ordinary review and an equal-effort placebo checklist by a practically meaningful amount without an excessive false-alarm penalty, with the artifact-origin and reviewer sides tracked as separate factors.",
+    "scope": "One preregistered human or agent reviewer cohort at a time; four matched task families; two artifact-origin sides (human, agent); 432 scorable task reviews per cohort. No pooled human-agent primary analysis and no universal safety claim.",
     "status_before": "H",
     "assumptions": [
-      "Seeded defects are audited for plausibility before randomization.",
+      "Seeded defects are audited for plausibility before randomization, on both artifact-origin sides.",
       "Ordinary control, active placebo, and Doubt gate receive equivalent tools, model access, task mix, severity mix, and time policy.",
+      "Artifact origin is balanced across conditions and families, and the seeding procedure is identical for human and agent artifacts.",
       "Important-defect severity is assigned before outcome scoring.",
       "Reviewer and matched-task dependence are represented in the uncertainty analysis."
     ],
@@ -14,15 +15,17 @@
       "Do not claim the framework is generally safer or better for AI work from this experiment alone.",
       "Do not claim causal benefit outside the tested task distribution or reviewer cohort.",
       "Do not pool human and agent cohorts for the primary effect.",
+      "Do not claim the gate works for an artifact-origin side where the observed advantage is absent or reversed.",
       "Do not treat checklist completion or CI success as evidence of effectiveness."
     ]
   },
   "specification": {
-    "intended_object": "A randomized matched three-condition comparison: ordinary review, an equal-effort generic five-field placebo checklist, and the CLAIM/FAILURE/EVIDENCE/TEST/REVERSAL gate.",
+    "intended_object": "A randomized matched three-condition comparison crossed with a two-level artifact-origin factor: ordinary review, an equal-effort generic five-field placebo checklist, and the CLAIM/FAILURE/EVIDENCE/TEST/REVERSAL gate, each reviewing human and agent artifacts.",
     "invariants": [
       "Condition assignment must not alter the answer key.",
-      "Correct no-defect tasks must exist in every task family and condition.",
-      "Raw task-level observations and reviewer/cohort identifiers must be preserved.",
+      "Correct no-defect tasks must exist in every task family, condition, and artifact-origin cell.",
+      "Every condition and task family must contain both artifact-origin variants.",
+      "Raw task-level observations and reviewer/cohort/artifact-origin identifiers must be preserved.",
       "Human and agent cohorts must not be pooled in the primary analysis.",
       "Kill conditions, sample size, effect region, and exclusions must not be changed after outcomes are inspected.",
       "Retired rules must not reappear in canonical or poster surfaces."
@@ -38,13 +41,13 @@
     "artifact": "experiments/001-seeded-errors/README.md, preregistration.json, and results.csv",
     "commit": "peer-review-hardened preregistration on branch peer-review-hardening-2026-08-30 before result collection",
     "environment": "One declared reviewer cohort at a time. Human and agent cohorts are executed and analyzed separately; exact model/tool/source entitlements and versions are recorded with results.",
-    "live_entrypoint": "Freeze seed inventory and realism audit; randomize matched task variants to one of three conditions; capture reviewer/cohort IDs and decisions; score against a blinded answer key; analyze only after the fixed stopping rule is met.",
-    "representation": "Task-level CSV rows with reviewer/cohort IDs plus immutable task, seed, realism-rating, and answer-key artifacts."
+    "live_entrypoint": "Freeze seed inventory and realism audit on both artifact-origin sides; randomize matched task variants to one of three conditions within each origin block; capture reviewer/cohort/artifact-origin IDs and decisions; score against a blinded answer key; analyze only after the fixed stopping rule is met.",
+    "representation": "Task-level CSV rows with reviewer/cohort IDs and artifact_origin plus immutable task, seed, realism-rating, and answer-key artifacts."
   },
   "metric": {
     "name": "important-defect escape profile",
     "type": "typed_tuple",
-    "units": "primary component: escaped preregistered medium/high defects per important seeded defect; secondary components: task-level any-escape probability, false-alarm rate, external checks, and review minutes",
+    "units": "primary component: escaped preregistered medium/high defects per important seeded defect, pooled across balanced artifact-origin cells; secondary components: task-level any-escape probability, false-alarm rate, external checks, review minutes, and artifact-origin strata",
     "direction": "partial_order",
     "raw_before_clipping": true,
     "semantic_invariance_claimed": true,
@@ -63,7 +66,7 @@
     "structural": [
       "Check every Doubt-gate record contains CLAIM, FAILURE, EVIDENCE, TEST, and REVERSAL responses before scoring.",
       "Check every active-placebo record contains TASK, SUMMARY, DETAILS, ALTERNATIVE, and DECISION responses before scoring.",
-      "Validate reviewer_id, reviewer_type, cohort_id, condition, and row arithmetic before analysis."
+      "Validate reviewer_id, reviewer_type, cohort_id, artifact_origin, condition, and row arithmetic before analysis."
     ],
     "property_based": [
       "important_defects_caught + important_defects_escaped == important_defect_count for every scored row.",
@@ -93,23 +96,25 @@
     ],
     "compute_parity": "Use the same model/tool entitlement, source access, and declared time policy in all three conditions; record actual review minutes and external checks separately.",
     "parameter_parity": "Not applicable to human reviewers. For agent cohorts, use the same model identity and configurable settings across conditions and record them.",
-    "sampling_parity": "Exactly 216 scorable task reviews per cohort: 72 per condition and 18 per task family per condition. Counterbalance matched variants and severity distribution; randomize before review; no outcome-driven N extension.",
+    "sampling_parity": "Exactly 432 scorable task reviews per cohort: 144 per condition, 36 per task family per condition, and 18 per task family per condition per artifact-origin cell. Counterbalance matched variants and severity distribution; randomize before review; no outcome-driven N extension.",
     "data_access_parity": "All conditions receive identical task inputs and allowed external sources; reviewers never receive the hidden answer key."
   },
   "preregistration": {
-    "prediction": "The Doubt gate has at least a 10 percentage-point lower per-defect important-defect escape probability than each comparator, while not increasing false-alarm rate by more than 10 percentage points; review time may increase.",
-    "primary_metric": "Per-defect escape probability for preregistered medium/high defects, with the four task families equally weighted. Primary contrasts are Doubt gate minus ordinary control and Doubt gate minus active placebo. Secondary task-level analysis reports whether any important defect escaped.",
+    "prediction": "The Doubt gate has at least a 10 percentage-point lower per-defect important-defect escape probability than each comparator, while not increasing false-alarm rate by more than 10 percentage points; review time may increase. Secondarily, the gate's advantage is directionally consistent across the human and agent artifact-origin sides.",
+    "primary_metric": "Per-defect escape probability for preregistered medium/high defects, with the four task families equally weighted and pooled across the balanced artifact-origin cells. Primary contrasts are Doubt gate minus ordinary control and Doubt gate minus active placebo. The origin-by-condition interaction is a preregistered secondary analysis. Secondary task-level analysis reports whether any important defect escaped.",
     "uncertainty_method": "Report raw task rows and confidence intervals for each primary contrast using a method that clusters by reviewer_id and matched task set. Also report task-family strata, reviewer-type strata, and review-time distributions. Human and agent cohorts are analyzed separately.",
-    "kill_condition": "Kill or narrow the specific-gate effectiveness claim unless the Doubt gate beats both ordinary control and active placebo by at least 10 absolute percentage points on the primary escape estimand, each primary interval excludes zero benefit, false-alarm rate is not more than 10 points worse than either comparator, the advantage survives held-out variants and reviewer/matched-task clustering, framing checks do not induce contrarian error, and the effect is not confined to low-realism seeds.",
-    "stop_condition": "Stop data collection at exactly 216 scorable reviews for the preregistered cohort. Replace only preregistered exclusions such as answer-key leakage, corrupted input, or review-preventing tool failure, logging every replacement. If uncertainty remains too wide, report inconclusive and do not extend N under this preregistration. Do not add a richer checklist or ontology to rescue failure before reporting it.",
+    "kill_condition": "Kill or narrow the specific-gate effectiveness claim unless the Doubt gate beats both ordinary control and active placebo by at least 10 absolute percentage points on the primary escape estimand, each primary interval excludes zero benefit, false-alarm rate is not more than 10 points worse than either comparator, the advantage survives held-out variants and reviewer/matched-task clustering, framing checks do not induce contrarian error, the effect is not confined to low-realism seeds, and the advantage is not confined to or reversed on one artifact-origin side; a side-specific effect narrows the claim to that side rather than promoting a general one.",
+    "stop_condition": "Stop data collection at exactly 432 scorable reviews (two artifact-origin blocks of 216) for the preregistered cohort. Replace only preregistered exclusions such as answer-key leakage, corrupted input, or review-preventing tool failure, logging every replacement. If uncertainty remains too wide, report inconclusive and do not extend N under this preregistration. Do not add a richer checklist or ontology to rescue failure before reporting it.",
     "promotion_rule": "A positive cohort may promote only the bounded measured statement for that cohort, task distribution, three-arm comparison, false-alarm cost, and review-time cost. General effectiveness requires held-out replication and a genuinely independent witness."
   },
   "sample_plan": {
-    "scorable_reviews_per_cohort": 216,
+    "scorable_reviews_per_cohort": 432,
     "conditions": ["ordinary_control", "active_placebo", "doubt_gate"],
-    "reviews_per_condition": 72,
+    "reviews_per_condition": 144,
     "task_families": ["factual_current", "numerical_analytical", "code_review", "summary_design"],
-    "reviews_per_family_per_condition": 18,
+    "reviews_per_family_per_condition": 36,
+    "artifact_origin_values": ["human", "agent"],
+    "reviews_per_family_per_condition_per_origin": 18,
     "minimum_distinct_reviewer_ids": 12,
     "optional_stopping": false,
     "replacement_policy": "Only preregistered technical/answer-key leakage exclusions may be replaced; all replacements are logged before outcome analysis."
@@ -123,7 +128,7 @@
   "seed_realism_audit": {
     "timing": "before randomization and outcome collection",
     "minimum_non_author_judges_per_seed": 2,
-    "procedure": "Freeze seeds and answer key; obtain plausibility ratings from judges who did not author the seed; preserve disagreements; exclude or relabel implausible seeds before randomization only; stratify final results by realism rating.",
+    "procedure": "Freeze seeds and answer key; obtain plausibility ratings from judges who did not author the seed, for seeds on both human and agent artifacts; preserve disagreements and record artifact origin with each rating; exclude or relabel implausible seeds before randomization only; stratify final results by realism rating within each origin side.",
     "post_outcome_seed_rewriting": false
   },
   "evidence": {
@@ -166,7 +171,7 @@
       {
         "from": "formal specification",
         "to": "task representation",
-        "preserved": ["Three conditions, seeded defects, correct negatives, reviewer IDs, seed realism."],
+        "preserved": ["Three conditions, two artifact-origin sides, seeded defects, correct negatives, reviewer IDs, seed realism."],
         "transformed": ["Review objects become matched task variants and blinded answer keys."],
         "lost": ["Some real-world organizational context."],
         "remainder": ["Organic-error validity remains a replication target even after seed-realism audit."]
@@ -221,7 +226,7 @@
     "active_remainder": [
       "Construct and freeze matched tasks and seed inventory.",
       "Complete the pre-randomization seed-realism audit.",
-      "Run one fixed-N cohort without optional stopping.",
+      "Run one fixed-N cohort without optional stopping, covering both artifact-origin sides.",
       "Quantify clustered uncertainty, false alarms, and review-time cost.",
       "Obtain an independent replication witness before general promotion."
     ]

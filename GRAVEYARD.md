@@ -102,6 +102,16 @@ The exact retired poster labels were:
 
 **Status:** retired before result collection.
 
+## 2026-08-30 — tock-003 endpoint-factor hardening
+
+### Retired: single-origin Experiment 001 sample plan
+
+**Failure mode:** the 216-review cohort plan fixed the reviewer side but did not record whether the artifact under review came from the human side or the AI/agent side. A positive result could therefore hide whether the gate helped on human artifacts, agent artifacts, or only one endpoint pairing.
+
+**Replacement:** keep the three review conditions unchanged, add `artifact_origin` as a crossed `human | agent` factor, and collect exactly 432 scorable task reviews per reviewer cohort: 144 per condition, 36 per task family per condition, and 18 per task family per condition per artifact-origin cell. If both reviewer cohorts run, the full crossed-endpoint plan contains 864 scorable reviews.
+
+**Status:** superseded before result collection; measurement design changed, rule content unchanged.
+
 ## Machine-readable retirement source
 
 `retired.json` is the machine-readable ledger used by CI to prevent retired wording from reappearing on declared public surfaces. This human-readable graveyard preserves the reasons, evidence, and replacements.
