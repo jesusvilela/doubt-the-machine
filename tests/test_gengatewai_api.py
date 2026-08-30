@@ -3,6 +3,7 @@ from __future__ import annotations
 from fastapi.testclient import TestClient
 
 from api.gengatewai.app import app
+from api.gengatewai.models import MAX_CLAIM_LENGTH, MAX_REVIEW_RECORDS
 
 client = TestClient(app)
 
@@ -112,6 +113,18 @@ def test_evaluate_rejects_bad_endpoint_value() -> None:
     assert response.status_code == 422
 
 
+def test_evaluate_rejects_oversized_claim() -> None:
+    response = client.post(
+        "/v1/gates/doubt-the-machine/evaluate",
+        json={
+            "claim": "x" * (MAX_CLAIM_LENGTH + 1),
+            "artifact_origin": "human",
+            "reviewer_type": "human",
+        },
+    )
+    assert response.status_code == 422
+
+
 def test_validate_review_records_accepts_valid_row() -> None:
     response = client.post(
         "/v1/gates/doubt-the-machine/review-records/validate",
@@ -137,6 +150,14 @@ def test_validate_review_records_reports_bad_rows() -> None:
     assert body["accepted_rows"] == 0
     assert any("condition" in error["message"] for error in body["errors"])
     assert any("important_defects_caught + important_defects_escaped" in error["message"] for error in body["errors"])
+
+
+def test_validate_review_records_rejects_oversized_batch() -> None:
+    response = client.post(
+        "/v1/gates/doubt-the-machine/review-records/validate",
+        json={"records": [valid_record()] * (MAX_REVIEW_RECORDS + 1)},
+    )
+    assert response.status_code == 422
 
 
 def test_experiment_endpoint_exposes_tock_003_sample_plan() -> None:
