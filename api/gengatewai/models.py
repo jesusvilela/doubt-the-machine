@@ -3,9 +3,18 @@ from __future__ import annotations
 from enum import Enum
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, Field, NonNegativeFloat, NonNegativeInt, StringConstraints, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    NonNegativeFloat,
+    NonNegativeInt,
+    StringConstraints,
+    field_validator,
+    model_validator,
+)
 
-from api.gengatewai.contracts import CONDITIONS, ENDPOINT_VALUES
+from api.gengatewai.contracts import GATE_FIELDS
 
 MAX_IDENTIFIER_LENGTH = 256
 MAX_CLAIM_LENGTH = 8_192
@@ -19,6 +28,10 @@ ClaimString = Annotated[str, StringConstraints(strip_whitespace=True, min_length
 ArtifactString = Annotated[str, StringConstraints(max_length=MAX_ARTIFACT_LENGTH)]
 GateValue = Annotated[str, StringConstraints(max_length=MAX_GATE_VALUE_LENGTH)]
 NotesString = Annotated[str, StringConstraints(max_length=MAX_NOTES_LENGTH)]
+
+
+class StrictModel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
 
 
 class EndpointValue(str, Enum):
@@ -39,7 +52,7 @@ class Reversibility(str, Enum):
     irreversible = "irreversible"
 
 
-class GateEvaluationRequest(BaseModel):
+class GateEvaluationRequest(StrictModel):
     claim: ClaimString
     artifact: ArtifactString | None = None
     artifact_origin: EndpointValue
@@ -50,10 +63,19 @@ class GateEvaluationRequest(BaseModel):
     external_claim: bool = False
     experiment_or_metric: bool = False
     active_rule_or_evidence_change: bool = False
-    gate: dict[str, GateValue | None] = Field(default_factory=dict, max_length=5)
+    gate: dict[str, GateValue | None] = Field(default_factory=dict, max_length=len(GATE_FIELDS))
+
+    @field_validator("gate")
+    @classmethod
+    def validate_gate_keys(cls, gate: dict[str, GateValue | None]) -> dict[str, GateValue | None]:
+        allowed = set(GATE_FIELDS)
+        unexpected = sorted(str(key) for key in gate if str(key).upper() not in allowed)
+        if unexpected:
+            raise ValueError(f"unexpected gate fields: {', '.join(unexpected)}")
+        return gate
 
 
-class GateEvaluationResponse(BaseModel):
+class GateEvaluationResponse(StrictModel):
     framework: str
     verification_effort: Literal["light", "standard", "high"]
     reasons: list[str]
@@ -63,7 +85,7 @@ class GateEvaluationResponse(BaseModel):
     does_not_decide_truth: Literal[True] = True
 
 
-class ReviewRecord(BaseModel):
+class ReviewRecord(StrictModel):
     task_id: NonEmptyString
     task_family: NonEmptyString
     condition: Literal["ordinary_control", "active_placebo", "doubt_gate"]
@@ -92,16 +114,16 @@ class ReviewRecord(BaseModel):
         return self
 
 
-class ReviewRecordsValidationRequest(BaseModel):
+class ReviewRecordsValidationRequest(StrictModel):
     records: list[dict[str, Any]] = Field(max_length=MAX_REVIEW_RECORDS)
 
 
-class ReviewRecordValidationError(BaseModel):
+class ReviewRecordValidationError(StrictModel):
     row_index: int
     message: str
 
 
-class ReviewRecordsValidationResponse(BaseModel):
+class ReviewRecordsValidationResponse(StrictModel):
     valid: bool
     accepted_rows: int
     errors: list[ReviewRecordValidationError]
