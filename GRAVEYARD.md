@@ -48,9 +48,15 @@ This file records formulations that were removed, weakened, or replaced. A grave
 
 ### Retired: three local “Rule 0” rows
 
+The exact retired poster labels were:
+
+- `0  Doubt this list too`
+- `0  Doubt the compression`
+- `0  Test this list too`
+
 **Why it failed:** the README had one global Rule 0 plus a separate `0` row in each panel, making “Rule 0” ambiguous and visually padding a framework that emphasizes compression.
 
-**Replacement:** one global Rule 0, with short reflexive checks under each panel.
+**Replacement:** one global Rule 0, with short unnumbered reflexive checks under each panel.
 
 **Status:** retired as numbering, preserved as behavior.
 
