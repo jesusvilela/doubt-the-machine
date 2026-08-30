@@ -4,6 +4,22 @@ The GenGatewAI MCP server exposes the same deterministic Doubt the Machine contr
 
 It does **not** decide whether a claim is true or acceptable. It can inspect the current framework contract, recommend verification effort, identify missing gate fields, expose Experiment 001, and validate review records.
 
+## Security boundary
+
+The supported default transport is **stdio**. The current MCP tools are non-mutating: they inspect contracts, evaluate the gate, or validate supplied records without storing them.
+
+Streamable HTTP is intentionally **loopback-only** in the built-in server. Binding directly to `0.0.0.0`, a LAN address, or a public hostname fails closed.
+
+For remote use:
+
+1. keep GenGatewAI bound to `127.0.0.1` / `::1`;
+2. put an authenticated TLS reverse proxy or hosting layer in front of it;
+3. implement the current MCP authorization requirements at that boundary;
+4. apply infrastructure rate/request-size limits and abuse monitoring;
+5. never treat network reachability as authorization.
+
+See [SECURITY.md](SECURITY.md) for the repository-wide trust model.
+
 ## Run locally
 
 Install the Python dependencies:
@@ -23,6 +39,8 @@ Run Streamable HTTP for local remote-client testing:
 ```bash
 python -m api.gengatewai.mcp_server --transport streamable-http --host 127.0.0.1 --port 8766 --path /mcp
 ```
+
+A non-loopback host is rejected by design.
 
 ## Tools
 
@@ -69,6 +87,8 @@ enabled_tools = [
   "get_experiment_001_contract",
 ]
 ```
+
+`auto` approval is acceptable here only because the enabled tool whitelist is currently non-mutating. If a future MCP tool writes state, executes user content, performs network fetches, or triggers external side effects, this assumption must be revisited before that tool is enabled.
 
 For a host that expects a JSON-style command sketch, use:
 
