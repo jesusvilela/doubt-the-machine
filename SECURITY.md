@@ -59,6 +59,14 @@ The `Container security contract` workflow builds the actual production image an
 
 The Dockerfile text alone is not treated as evidence that these runtime properties hold.
 
+## Vercel function boundary
+
+Vercel deployments expose only the deterministic FastAPI surface through `api/index.py`.
+
+The Vercel function bundle and deployment upload exclude non-runtime surfaces: tests, local agent/Codex state, Git metadata, GitHub workflow files, documentation, visual assets, skills, web experiments, Python caches, and `.env` material. The runtime contract must keep the API package, Python dependencies, and Experiment 001 preregistration available.
+
+Do not treat deployment packaging as the only control. Public Vercel deployments should still use provider-side abuse controls such as deployment protection, firewall/rate-limit policy, request-size policy, and secret-managed environment variables where appropriate.
+
 ## Security invariants
 
 1. No submitted artifact is executed.
@@ -67,7 +75,8 @@ The Dockerfile text alone is not treated as evidence that these runtime properti
 4. Remote MCP cannot be accidentally exposed by changing only `--host`.
 5. API/MCP outputs are advisory and never a truth/security verdict.
 6. Production container runtime is non-root and its minimal filesystem is tested from the built image.
-7. A security-control change must remain reversible and testable.
+7. Vercel function deployments exclude non-runtime surfaces while preserving required runtime inputs.
+8. A security-control change must remain reversible and testable.
 
 ## Reporting a vulnerability
 
