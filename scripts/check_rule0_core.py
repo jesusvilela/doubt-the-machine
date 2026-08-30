@@ -15,6 +15,7 @@ sys.path.insert(0, str(ROOT))
 from api.gengatewai import contracts as api_contracts  # noqa: E402
 
 REQUIRED = [
+    "app.py",
     "FALSIFIERS.md",
     "GRAVEYARD.md",
     "EVIDENCE.md",
@@ -274,6 +275,7 @@ def validate_api_contract() -> None:
     skill = (ROOT / "skills/doubt-the-machine-api/SKILL.md").read_text(encoding="utf-8")
     reference = (ROOT / "skills/doubt-the-machine-api/references/api-contract.md").read_text(encoding="utf-8")
     for required in (
+        "@app.get(\"/\")",
         "/v1/models",
         "/v1/chat/completions",
         "/v1/local-models",
@@ -297,6 +299,16 @@ def validate_api_contract() -> None:
             fail(f"local lab detail pattern missing from .gitignore: {required}")
     if "does_not_call_external_models_by_default" not in runner_text + api_doc + reference + str(api_contracts.framework_contract()):
         fail("OpenAI-compatible runner must document that local/external calls are disabled by default")
+
+    vercel = load_json("vercel.json")
+    functions = vercel.get("functions", {})
+    if not isinstance(functions, dict) or "app.py" not in functions:
+        fail("Vercel must use supported FastAPI entrypoint app.py")
+    if "rewrites" in vercel:
+        fail("Vercel FastAPI preset must not be shadowed by a legacy catch-all rewrite")
+    entrypoint = (ROOT / "app.py").read_text(encoding="utf-8")
+    if "from api.gengatewai.app import app" not in entrypoint:
+        fail("Vercel app.py must re-export the GenGatewAI FastAPI app")
 
 
 def validate_mcp_contract() -> None:

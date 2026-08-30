@@ -11,6 +11,7 @@ python -m uvicorn api.gengatewai.app:app --reload
 
 Then open:
 
+- `GET /`
 - `GET /healthz`
 - `GET /v1/models`
 - `POST /v1/chat/completions`
@@ -96,6 +97,6 @@ Codex project configuration is included at `.codex/config.toml` for trusted loca
 
 ## Cloud targets
 
-- `vercel.json` exposes the FastAPI app through Vercel’s Python function shape.
+- `app.py` re-exports the FastAPI app at a Vercel-supported framework entrypoint; `vercel.json` configures that function without a legacy catch-all rewrite.
 - `Dockerfile` runs the same API with Uvicorn for portable container deployment.
 - `web/` contains the Vercel Labs `vgpu`-ready visualization contract for the gate loop, effort levels, endpoint matrix, and missing-field state. Its tests use `vgpu/mock` so CI does not require GPU hardware.

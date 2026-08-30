@@ -39,6 +39,18 @@ def test_healthz() -> None:
     assert response.json() == {"service": "GenGatewAI", "version": "0.1.0", "status": "ok"}
 
 
+def test_service_index_points_to_openai_compatible_runner() -> None:
+    response = client.get("/")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["service"] == "GenGatewAI"
+    assert body["loop"] == "DOUBT → MEASURE → TEST → REVERT → REPEAT"
+    assert body["openai_compatible_model"] == OPENAI_COMPATIBLE_RUNNER_MODEL
+    assert "/v1/models" in body["endpoints"]
+    assert "/v1/chat/completions" in body["endpoints"]
+    assert body["does_not_decide_truth"] is True
+
+
 def test_framework_contract_exposes_gate_and_endpoints() -> None:
     response = client.get("/v1/gates/doubt-the-machine")
     assert response.status_code == 200

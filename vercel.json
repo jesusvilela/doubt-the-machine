@@ -1,15 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
-    "api/index.py": {
+    "app.py": {
       "maxDuration": 10,
       "excludeFiles": "{.agent/**,.codex/**,.github/**,.git/**,.pytest_cache/**,__pycache__/**,**/__pycache__/**,**/*.py[cod],.env,.env.*,.gengatewai.local*,local-lab*,*.local-lab.*,tests/**,__tests__/**,**/*.test.py,**/test_*.py,web/**,assets/**,skills/**,*.md}"
     }
-  },
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/api/index.py"
-    }
-  ]
+  }
 }
