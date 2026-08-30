@@ -68,8 +68,9 @@ The key word is **independent**. A model critiquing its own answer can reveal in
 | 6 | **Ask again in fresh context** | Expose anchoring; remember this is another sample, not guaranteed independence. |
 | 7 | **Check outside the AI** | Use primary sources, tests, benchmarks, data, or relevant expertise. |
 | 8 | **Notice what it leaves out** | Missing alternatives and qualifiers can matter more than polished prose. |
-| 9 | **Count how often it disagrees with you** | If never, test explicitly for sycophancy and framing bias. |
-| 0 | **Doubt this list too** | Rules remain editable by evidence. |
+| 9 | **Test framing invariance** | Ask under supportive, opposing, and neutral framing. Disagreement itself is not evidence. |
+
+**Reflexive check:** apply Rule 0 to this panel too.
 
 ## 2 — Doubt the bits
 
@@ -86,7 +87,8 @@ The key word is **independent**. A model critiquing its own answer can reveal in
 | 7 | **One answer is one sample** | Re-sample when variance matters; compare methods, not only wording. |
 | 8 | **Confident tone is not accuracy** | Separate style from evidence. |
 | 9 | **“Best” needs a baseline** | No superlative without comparator, metric, data, and conditions. |
-| 0 | **Doubt the compression** | This panel is itself a lossy model. |
+
+**Reflexive check:** compression can hide the failure mode, so apply Rule 0 here too.
 
 ## 3 — Doubt the build
 
@@ -95,20 +97,21 @@ The key word is **independent**. A model critiquing its own answer can reveal in
 | # | Rule | Operational meaning |
 |---|---|---|
 | 1 | **“The AI says it works” means nothing** | Run it in the real environment or a faithful reproduction. |
-| 2 | **No test, no merge** | Cover changed behavior and relevant failure paths. |
-| 3 | **Own every changed line** | Review the diff; generation does not transfer responsibility. |
+| 2 | **No unverified behavior, no merge** | Match evidence to the claim: tests for behavior; inspection, derivation, or provenance for non-runtime changes. |
+| 3 | **Own every changed behavior** | Verify invariants and risk-bearing paths; sample low-risk generated surfaces when line-by-line review does not scale. |
 | 4 | **Make retries safe** | Prefer idempotency, explicit state, bounded retries, and recovery. |
 | 5 | **Add logs, not only features** | Instrument failure so reality can disagree visibly. |
 | 6 | **Ask it to delete, not just add** | Remove dead paths, duplicate abstractions, and speculative complexity. |
 | 7 | **Prefer inspectable dependencies** | Familiar, documented tools are easier to verify; novelty needs stronger checking. |
 | 8 | **Assume partial failure** | Network, storage, permissions, data, dependencies, and users fail independently. |
 | 9 | **Small changes, easy rollback** | Keep blast radius low and reversal cheap. |
-| 0 | **Test this list too** | Process rules are hypotheses, not commandments. |
+
+**Reflexive check:** process rules are hypotheses, not commandments.
 
 For code, the compact gate is:
 
 ```text
-reproduce → test → inspect diff → exercise failure → observe → rollback-plan → merge
+reproduce → match evidence → inspect risk → exercise failure → observe → rollback-plan → merge
 ```
 
 ## Rule 0 is the important one
@@ -125,6 +128,15 @@ So:
 
 The target is a framework that **gets harder to fool as people try to break it**.
 
+Rule 0 now has visible artifacts rather than only a slogan:
+
+- [FALSIFIERS.md](FALSIFIERS.md) states what would weaken or kill the framework’s claims.
+- [GRAVEYARD.md](GRAVEYARD.md) preserves rules and formulations that were retired.
+- [EVIDENCE.md](EVIDENCE.md) maps important rules to prior work and external evidence.
+- [Experiment 001](experiments/001-seeded-errors/README.md) preregisters the first controlled self-test.
+
+**Current status:** the framework’s net effectiveness is still a **hypothesis**, not a measured result. Experiment 001 is designed to change that status or kill the claim.
+
 ## What this is — and is not
 
 This is a compact **verification and reversibility discipline** for human–AI work.
@@ -134,6 +146,8 @@ It does not assume humans are reliable by default. Humans also anchor, omit, ove
 The braking mechanism is intentionally boring:
 
 **doubt the claim → measure what matters → test the failure mode → revert cheaply when reality disagrees.**
+
+It is also possible to doubt badly. Verification theatre, performative disagreement, and doubt paralysis are failure modes of this framework itself; see [PRINCIPLES.md](PRINCIPLES.md).
 
 ## Contributing
 

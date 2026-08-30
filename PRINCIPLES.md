@@ -19,7 +19,7 @@ There is no universal verification ritual. Different claims require different ev
 - A summary benefits from comparison against the source and inspection of omissions.
 - A high-stakes recommendation benefits from domain-qualified review in addition to model output.
 
-Verification effort should scale with **uncertainty × consequence × irreversibility**.
+Verification effort should **increase with uncertainty, consequence, and irreversibility**. This is a qualitative ordering, not a calibrated equation. If a quantitative policy is needed, define the axes and thresholds for the domain instead of multiplying undefined quantities.
 
 ## 3. Independence matters
 
@@ -54,6 +54,8 @@ For critical material, preserve access to the source and check qualifiers, excep
 Multiple answers can reveal instability, anchoring, and alternative hypotheses. Agreement across samples can be useful evidence about model consistency, but repeated agreement is not independent proof of correctness.
 
 Use re-sampling to answer: “How sensitive is this output to context and generation?” Use external evidence to answer: “Is the claim actually supported?”
+
+A useful extension is **framing invariance**. Ask materially equivalent questions under supportive, opposing, and neutral framing. If the conclusion tracks the user’s stance more than the evidence, treat that as a warning. Deliberate disagreement is not a cure: a model can become contrarian just as easily as agreeable.
 
 ## 7. Baselines make superlatives meaningful
 
@@ -90,7 +92,50 @@ This project does not assume humans are reliable referees. Humans anchor, halluc
 
 The point of the framework is therefore not “human good, AI bad.” It is to build **systems of disagreement** in which claims can be checked by evidence, tests, measurements, and reviewers with different failure modes.
 
-## 10. Rule 0 prevents dogma
+## 10. Agentic scale changes the unit of review
+
+“Review every changed line” is a useful responsibility signal at small scale, but it becomes a poor operational primitive when agents generate changes faster than humans can inspect them deeply.
+
+The responsibility should not disappear; the unit should move upward:
+
+- specify invariants and acceptance criteria before generation;
+- inspect security-, data-, and architecture-critical paths directly;
+- test changed behavior and failure paths;
+- require provenance for generated or transformed artifacts;
+- sample lower-risk surfaces instead of pretending exhaustive human review occurred;
+- keep diffs and rollbacks bounded enough to contain misses.
+
+This is not permission for blind merging. It is a claim that **behavioral and invariant ownership can be stronger than ceremonial line ownership** when throughput rises.
+
+## 11. Doubt has failure modes too
+
+A method for skepticism can become pathological.
+
+### Verification theatre
+
+Checks can accumulate because they look rigorous rather than because they discriminate between success and failure. A check that cannot change the decision is ceremony.
+
+**Detection test:** ask what observation from the check would reverse or alter the decision. If the answer is “none,” remove or redesign it.
+
+### Reverse sycophancy
+
+If a reviewer is rewarded for disagreeing, it may manufacture objections or capitulate in the opposite direction.
+
+**Detection test:** vary framing while holding evidence constant. Prefer conclusion stability over raw disagreement counts.
+
+### Doubt paralysis
+
+Verification can cost more than the error it is supposed to prevent.
+
+**Detection test:** compare verification cost with consequence and reversibility. For low-stakes reversible work, use a lighter gate and learn from rollback.
+
+### Correlated checking
+
+Many checks may still share one source of error: the same model, prompt, training data, implementation, or author.
+
+**Detection test:** identify what could disagree for an actually different reason.
+
+## 12. Rule 0 prevents dogma
 
 Every rule in this repository is provisional.
 
@@ -101,3 +146,5 @@ The governing loop is the same loop the framework recommends:
 ```text
 DOUBT → MEASURE → TEST → REVERT → REPEAT
 ```
+
+The framework itself therefore has explicit falsifiers, a correction graveyard, an evidence ledger, and preregistered experiments. These artifacts are not proof that the framework works; they make failure visible enough to act on.
