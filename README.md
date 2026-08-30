@@ -4,6 +4,8 @@
 
 > **Rule 0:** apply this framework to itself. Doubt it, measure it, test it, and revert it when it fails.
 
+**Scope:** use this when AI output crosses the boundary from proposal into **belief, decision, execution, or persistence**. Creative play and low-stakes ideation need little ceremony; verification should rise with the cost and reversibility of being wrong.
+
 ![Doubt the Machine poster](assets/doubt-the-machine.svg)
 
 ```text
