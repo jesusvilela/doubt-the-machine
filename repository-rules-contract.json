@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "repository": "jesusvilela/doubt-the-machine",
+  "branches": {
+    "dev": {
+      "ruleset": "dev-integration-gate",
+      "target_ref": "refs/heads/dev",
+      "required_rule_types": ["deletion", "non_fast_forward", "pull_request", "required_status_checks"],
+      "required_status_checks": [
+        "self-audit-contract",
+        "container-contract",
+        "analyze (python)",
+        "analyze (javascript-typescript)"
+      ],
+      "require_up_to_date": true,
+      "require_review_thread_resolution": true,
+      "allow_always_bypass": false
+    },
+    "main": {
+      "ruleset": "main-release-gate",
+      "target_ref": "refs/heads/main",
+      "required_rule_types": ["deletion", "non_fast_forward", "pull_request", "required_status_checks"],
+      "required_status_checks": [
+        "self-audit-contract",
+        "container-contract",
+        "analyze (python)",
+        "analyze (javascript-typescript)"
+      ],
+      "require_up_to_date": true,
+      "require_review_thread_resolution": true,
+      "allow_always_bypass": false
+    }
+  },
+  "release_tags": {
+    "ruleset": "release-tags-immutable",
+    "target": "tag",
+    "target_ref": "refs/tags/v*",
+    "required_rule_types": ["deletion", "non_fast_forward"],
+    "allow_always_bypass": false
+  }
+}
