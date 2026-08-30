@@ -22,6 +22,11 @@ MAX_ARTIFACT_LENGTH = 65_536
 MAX_GATE_VALUE_LENGTH = 8_192
 MAX_NOTES_LENGTH = 8_192
 MAX_REVIEW_RECORDS = 1_000
+MAX_OPENAI_MESSAGES = 64
+MAX_OPENAI_MESSAGE_CONTENT_LENGTH = 65_536
+MAX_OPENAI_TOTAL_MESSAGE_CHARS = 131_072
+MAX_OPENAI_METADATA_KEYS = 32
+MAX_OPENAI_METADATA_VALUE_LENGTH = 8_192
 
 NonEmptyString = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=MAX_IDENTIFIER_LENGTH)]
 ClaimString = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=MAX_CLAIM_LENGTH)]
@@ -32,6 +37,10 @@ NotesString = Annotated[str, StringConstraints(max_length=MAX_NOTES_LENGTH)]
 
 class StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+
+class OpenAICompatibleModel(BaseModel):
+    model_config = ConfigDict(extra="allow")
 
 
 class EndpointValue(str, Enum):
@@ -127,3 +136,94 @@ class ReviewRecordsValidationResponse(StrictModel):
     valid: bool
     accepted_rows: int
     errors: list[ReviewRecordValidationError]
+
+
+def _bounded_content_length(content: Any) -> int:
+    if content is None:
+        return 0
+    if isinstance(content, str):
+        return len(content)
+    if isinstance(content, list):
+        total = 0
+        for item in content:
+            if not isinstance(item, dict):
+                raise ValueError("message content parts must be objects")
+            for value in item.values():
+                if isinstance(value, str):
+                    total += len(value)
+        return total
+    raise ValueError("message content must be a string, list of content parts, or null")
+
+
+class OpenAIChatMessage(OpenAICompatibleModel):
+    role: Literal["system", "developer", "user", "assistant", "tool"]
+    content: Any = None
+    name: str | None = Field(default=None, max_length=MAX_IDENTIFIER_LENGTH)
+    tool_call_id: str | None = Field(default=None, max_length=MAX_IDENTIFIER_LENGTH)
+
+    @field_validator("content")
+    @classmethod
+    def validate_content_size(cls, content: Any) -> Any:
+        if _bounded_content_length(content) > MAX_OPENAI_MESSAGE_CONTENT_LENGTH:
+            raise ValueError("message content exceeds maximum length")
+        return content
+
+
+class OpenAIChatCompletionRequest(OpenAICompatibleModel):
+    model: NonEmptyString
+    messages: list[OpenAIChatMessage] = Field(min_length=1, max_length=MAX_OPENAI_MESSAGES)
+    stream: bool = False
+    n: int = Field(default=1, ge=1, le=1)
+    metadata: dict[str, Any] | None = Field(default=None, max_length=MAX_OPENAI_METADATA_KEYS)
+    temperature: float | None = None
+    top_p: float | None = None
+    max_tokens: NonNegativeInt | None = None
+    max_completion_tokens: NonNegativeInt | None = None
+    user: str | None = Field(default=None, max_length=MAX_IDENTIFIER_LENGTH)
+
+    @field_validator("metadata")
+    @classmethod
+    def validate_metadata_values(cls, metadata: dict[str, Any] | None) -> dict[str, Any] | None:
+        if metadata is None:
+            return None
+        for key, value in metadata.items():
+            if len(str(key)) > MAX_IDENTIFIER_LENGTH:
+                raise ValueError("metadata key exceeds maximum length")
+            if isinstance(value, str) and len(value) > MAX_OPENAI_METADATA_VALUE_LENGTH:
+                raise ValueError("metadata value exceeds maximum length")
+        return metadata
+
+    @model_validator(mode="after")
+    def validate_total_message_size(self) -> "OpenAIChatCompletionRequest":
+        total = sum(_bounded_content_length(message.content) for message in self.messages)
+        if total > MAX_OPENAI_TOTAL_MESSAGE_CHARS:
+            raise ValueError("total message content exceeds maximum length")
+        return self
+
+
+class OpenAIChatCompletionResponseMessage(StrictModel):
+    role: Literal["assistant"]
+    content: str
+
+
+class OpenAIChatCompletionChoice(StrictModel):
+    index: int
+    message: OpenAIChatCompletionResponseMessage
+    finish_reason: Literal["stop"]
+    logprobs: None = None
+
+
+class OpenAIUsage(StrictModel):
+    prompt_tokens: NonNegativeInt
+    completion_tokens: NonNegativeInt
+    total_tokens: NonNegativeInt
+
+
+class OpenAIChatCompletionResponse(StrictModel):
+    id: str
+    object: Literal["chat.completion"]
+    created: NonNegativeInt
+    model: str
+    choices: list[OpenAIChatCompletionChoice]
+    usage: OpenAIUsage
+    system_fingerprint: str

@@ -3,6 +3,12 @@ __pycache__/
 *.py[cod]
 .venv/
 .vercel/
+.env
+.env.*
+!.env.example
+.gengatewai.local*
+local-lab*
+*.local-lab.*
 node_modules/
 web/node_modules/
 dist/
