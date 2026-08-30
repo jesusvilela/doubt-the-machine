@@ -13,6 +13,8 @@ REQUIRED = [
     "FALSIFIERS.md",
     "GRAVEYARD.md",
     "EVIDENCE.md",
+    "retired.json",
+    "assets/doubt-the-machine.svg",
     "experiments/001-seeded-errors/README.md",
     "experiments/001-seeded-errors/preregistration.json",
     "experiments/001-seeded-errors/results.csv",
@@ -23,6 +25,9 @@ EXPECTED_RESULTS_COLUMNS = [
     "task_family",
     "condition",
     "variant_id",
+    "reviewer_id",
+    "reviewer_type",
+    "cohort_id",
     "seeded_defect_count",
     "important_defect_count",
     "important_defects_caught",
@@ -30,6 +35,7 @@ EXPECTED_RESULTS_COLUMNS = [
     "false_alarms",
     "accepted",
     "reversed_after_evidence",
+    "external_checks",
     "review_minutes",
     "notes",
 ]
@@ -43,9 +49,24 @@ REQUIRED_PREREG = {
     "tests",
     "controls",
     "preregistration",
+    "sample_plan",
+    "effect_region",
+    "seed_realism_audit",
     "evidence",
     "round_trip",
     "result",
+}
+
+ALLOWED_CONDITIONS = {"ordinary_control", "active_placebo", "doubt_gate"}
+ALLOWED_REVIEWER_TYPES = {"human", "agent"}
+BOOLEAN_FIELDS = {"accepted", "reversed_after_evidence"}
+NONNEGATIVE_INTEGER_FIELDS = {
+    "seeded_defect_count",
+    "important_defect_count",
+    "important_defects_caught",
+    "important_defects_escaped",
+    "false_alarms",
+    "external_checks",
 }
 
 
@@ -53,53 +74,161 @@ def fail(message: str) -> None:
     raise SystemExit(f"Rule 0 contract failed: {message}")
 
 
-def main() -> None:
-    for relative in REQUIRED:
-        if not (ROOT / relative).is_file():
-            fail(f"missing required artifact: {relative}")
+def load_json(relative: str) -> dict:
+    try:
+        value = json.loads((ROOT / relative).read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        fail(f"invalid JSON in {relative}: {exc}")
+    if not isinstance(value, dict):
+        fail(f"{relative} must contain a JSON object")
+    return value
 
+
+def validate_retired_surfaces() -> None:
+    ledger = load_json("retired.json")
+    entries = ledger.get("entries")
+    if not isinstance(entries, list) or not entries:
+        fail("retired.json must contain a non-empty entries list")
+
+    graveyard = (ROOT / "GRAVEYARD.md").read_text(encoding="utf-8")
+    for entry in entries:
+        if not isinstance(entry, dict):
+            fail("each retired.json entry must be an object")
+        retired = entry.get("retired")
+        replacement = str(entry.get("replacement", "")).strip()
+        forbid_in = entry.get("forbid_in")
+        if not isinstance(retired, list) or not retired or not replacement:
+            fail("each retired entry needs retired wording and a replacement")
+        if not isinstance(forbid_in, list) or not forbid_in:
+            fail("each retired entry needs at least one forbidden surface")
+
+        # The correction history must preserve at least one full retired wording.
+        if not any(str(phrase) in graveyard for phrase in retired):
+            fail(f"graveyard does not preserve retirement evidence for {entry.get('id', 'unknown')}")
+
+        for relative in forbid_in:
+            path = ROOT / str(relative)
+            if not path.is_file():
+                fail(f"retirement ledger references missing surface: {relative}")
+            text = path.read_text(encoding="utf-8")
+            for phrase in retired:
+                if str(phrase) in text:
+                    fail(f"retired wording reintroduced in {relative}: {phrase}")
+
+
+def validate_readme_and_poster() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    if readme.count("**Rule 0:**") != 2:
-        fail("README must contain one governing Rule 0 near the top and one disclosure footer")
+    if "**Rule 0:** apply this framework to itself." not in readme[:1200]:
+        fail("README must state the governing Rule 0 near the top")
+    if "this README was assembled with AI assistance. Doubt it too." not in readme[-1200:]:
+        fail("README must retain the AI-assistance disclosure footer")
     if "| 0 |" in readme:
         fail("local panel Rule 0 rows were retired; use reflexive checks instead")
-    if "No test, no merge" in readme:
-        fail("retired absolute rule reintroduced: No test, no merge")
-    if "Count how often it disagrees with you" in readme:
-        fail("retired disagreement-count rule reintroduced")
-    if "Own every changed line" in readme:
-        fail("retired universal line-ownership wording reintroduced")
 
-    prereg_path = ROOT / "experiments/001-seeded-errors/preregistration.json"
-    prereg = json.loads(prereg_path.read_text(encoding="utf-8"))
+    poster = (ROOT / "assets/doubt-the-machine.svg").read_text(encoding="utf-8")
+    if "Twenty-seven practical rules plus one governing Rule 0" not in poster:
+        fail("poster description must reflect 27 panel rules plus one global Rule 0")
+    if "v1.2" not in poster:
+        fail("poster must carry the post-self-audit v1.2 marker")
+    if "Re-sample; don’t call it independent" not in poster:
+        fail("poster must preserve the non-independence caveat for re-sampling")
+
+
+def validate_preregistration() -> None:
+    prereg = load_json("experiments/001-seeded-errors/preregistration.json")
     missing = sorted(REQUIRED_PREREG - prereg.keys())
     if missing:
         fail(f"preregistration missing top-level fields: {', '.join(missing)}")
 
     gate = prereg.get("preregistration", {})
-    for field in ("prediction", "primary_metric", "kill_condition", "stop_condition", "promotion_rule"):
+    for field in ("prediction", "primary_metric", "uncertainty_method", "kill_condition", "stop_condition", "promotion_rule"):
         if not str(gate.get(field, "")).strip():
             fail(f"preregistration.{field} must be non-empty")
+
+    sample = prereg.get("sample_plan", {})
+    if sample.get("scorable_reviews_per_cohort") != 216:
+        fail("Experiment 001 fixed sample must remain 216 scorable reviews per cohort")
+    if sample.get("reviews_per_condition") != 72:
+        fail("Experiment 001 must retain 72 reviews per condition")
+    if sample.get("reviews_per_family_per_condition") != 18:
+        fail("Experiment 001 must retain 18 reviews per family per condition")
+    if sample.get("minimum_distinct_reviewer_ids", 0) < 12:
+        fail("Experiment 001 requires at least 12 distinct reviewer IDs per cohort")
+    if sample.get("optional_stopping") is not False:
+        fail("Experiment 001 forbids optional stopping")
+    if set(sample.get("conditions", [])) != ALLOWED_CONDITIONS:
+        fail("Experiment 001 must retain ordinary, active-placebo, and Doubt-gate conditions")
+
+    effect = prereg.get("effect_region", {})
+    if effect.get("minimum_absolute_escape_reduction_vs_each_comparator") != 0.10:
+        fail("minimum practical escape reduction must remain 10 percentage points")
+    if effect.get("maximum_false_alarm_increase_vs_each_comparator") != 0.10:
+        fail("maximum allowed false-alarm increase must remain 10 percentage points")
+    if effect.get("primary_intervals_must_exclude_zero_benefit") is not True:
+        fail("primary intervals must exclude zero benefit for promotion")
+
+    seed_audit = prereg.get("seed_realism_audit", {})
+    if seed_audit.get("minimum_non_author_judges_per_seed", 0) < 2:
+        fail("seed realism requires at least two non-author judges per seed")
+    if seed_audit.get("post_outcome_seed_rewriting") is not False:
+        fail("seed rewriting after outcomes begin is forbidden")
 
     if prereg.get("result", {}).get("status_after") not in {"H", "M", "R"}:
         fail("Experiment 001 status must remain H, M, or R; it cannot become proof by checklist")
 
+
+def validate_results() -> None:
     results_path = ROOT / "experiments/001-seeded-errors/results.csv"
     with results_path.open(newline="", encoding="utf-8") as handle:
-        reader = csv.reader(handle)
-        header = next(reader, [])
-    if header != EXPECTED_RESULTS_COLUMNS:
-        fail("results.csv schema changed without updating the contract checker")
+        reader = csv.DictReader(handle)
+        if reader.fieldnames != EXPECTED_RESULTS_COLUMNS:
+            fail("results.csv schema changed without updating the contract checker")
 
-    graveyard = (ROOT / "GRAVEYARD.md").read_text(encoding="utf-8")
-    for retired in (
-        "Count how often it disagrees with you",
-        "No test, no merge",
-        "Own every changed line",
-        "uncertainty × consequence × irreversibility",
-    ):
-        if retired not in graveyard:
-            fail(f"correction history missing retired formulation: {retired}")
+        for line_number, row in enumerate(reader, start=2):
+            if row["condition"] not in ALLOWED_CONDITIONS:
+                fail(f"results.csv:{line_number} invalid condition")
+            if row["reviewer_type"] not in ALLOWED_REVIEWER_TYPES:
+                fail(f"results.csv:{line_number} reviewer_type must be human or agent")
+            for field in ("task_id", "task_family", "variant_id", "reviewer_id", "cohort_id"):
+                if not row[field].strip():
+                    fail(f"results.csv:{line_number} missing {field}")
+
+            parsed: dict[str, int] = {}
+            for field in NONNEGATIVE_INTEGER_FIELDS:
+                try:
+                    value = int(row[field])
+                except ValueError:
+                    fail(f"results.csv:{line_number} {field} must be an integer")
+                if value < 0:
+                    fail(f"results.csv:{line_number} {field} must be non-negative")
+                parsed[field] = value
+
+            for field in BOOLEAN_FIELDS:
+                if row[field] not in {"0", "1"}:
+                    fail(f"results.csv:{line_number} {field} must be 0 or 1")
+
+            try:
+                minutes = float(row["review_minutes"])
+            except ValueError:
+                fail(f"results.csv:{line_number} review_minutes must be numeric")
+            if minutes < 0:
+                fail(f"results.csv:{line_number} review_minutes must be non-negative")
+
+            if parsed["important_defect_count"] > parsed["seeded_defect_count"]:
+                fail(f"results.csv:{line_number} important_defect_count exceeds seeded_defect_count")
+            if parsed["important_defects_caught"] + parsed["important_defects_escaped"] != parsed["important_defect_count"]:
+                fail(f"results.csv:{line_number} caught + escaped must equal important_defect_count")
+
+
+def main() -> None:
+    for relative in REQUIRED:
+        if not (ROOT / relative).is_file():
+            fail(f"missing required artifact: {relative}")
+
+    validate_retired_surfaces()
+    validate_readme_and_poster()
+    validate_preregistration()
+    validate_results()
 
     print("Rule 0 contract: PASS")
 

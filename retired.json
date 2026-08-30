@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "disagreement-count",
+      "retired": ["Count how often it disagrees with you", "Count disagreement"],
+      "replacement": "Test framing invariance",
+      "forbid_in": ["README.md", "assets/doubt-the-machine.svg"]
+    },
+    {
+      "id": "no-test-no-merge",
+      "retired": ["No test, no merge"],
+      "replacement": "No unverified behavior, no merge",
+      "forbid_in": ["README.md", "assets/doubt-the-machine.svg"]
+    },
+    {
+      "id": "own-every-line",
+      "retired": ["Own every changed line"],
+      "replacement": "Own every changed behavior",
+      "forbid_in": ["README.md", "assets/doubt-the-machine.svg"]
+    },
+    {
+      "id": "pseudo-verification-equation",
+      "retired": ["uncertainty × consequence × irreversibility"],
+      "replacement": "increase with uncertainty, consequence, and irreversibility",
+      "forbid_in": ["README.md", "PRINCIPLES.md", "assets/doubt-the-machine.svg"]
+    },
+    {
+      "id": "local-rule-zero-machine",
+      "retired": ["0  Doubt this list too"],
+      "replacement": "Reflexive: apply Rule 0",
+      "forbid_in": ["assets/doubt-the-machine.svg"]
+    },
+    {
+      "id": "local-rule-zero-bits",
+      "retired": ["0  Doubt the compression"],
+      "replacement": "Reflexive: doubt the compression",
+      "forbid_in": ["assets/doubt-the-machine.svg"]
+    },
+    {
+      "id": "local-rule-zero-build",
+      "retired": ["0  Test this list too"],
+      "replacement": "Reflexive: test this list too",
+      "forbid_in": ["assets/doubt-the-machine.svg"]
+    }
+  ]
+}
