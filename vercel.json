@@ -3,7 +3,7 @@
   "functions": {
     "api/index.py": {
       "maxDuration": 10,
-      "excludeFiles": "{.agent/**,.codex/**,.github/**,.git/**,.pytest_cache/**,__pycache__/**,**/__pycache__/**,**/*.py[cod],.env,.env.*,tests/**,__tests__/**,**/*.test.py,**/test_*.py,web/**,assets/**,skills/**,*.md}"
+      "excludeFiles": "{.agent/**,.codex/**,.github/**,.git/**,.pytest_cache/**,__pycache__/**,**/__pycache__/**,**/*.py[cod],.env,.env.*,.gengatewai.local*,local-lab*,*.local-lab.*,tests/**,__tests__/**,**/*.test.py,**/test_*.py,web/**,assets/**,skills/**,*.md}"
     }
   },
   "rewrites": [

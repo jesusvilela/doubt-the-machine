@@ -19,6 +19,8 @@ Use this skill when a task asks to apply, expose, test, or integrate the Doubt t
 
 - If `DTM_API_BASE_URL` is set, call the API before restating framework details.
 - Start with `GET /healthz`; if unavailable, read the canonical repository files instead.
+- Use `GET /v1/models` and `POST /v1/chat/completions` when an OpenAI-compatible client needs the deterministic Doubt runner. The built-in model id is `gengatewai/doubt-runner`.
+- Use `GET /v1/local-models` only to inspect opt-in local LM Studio/Ollama capacity; do not treat local model output as a truth verdict.
 - Use `GET /v1/gates/doubt-the-machine` for the current gate contract.
 - Use `POST /v1/gates/doubt-the-machine/evaluate` to choose verification effort and identify missing gate fields. The response is not a truth verdict.
 - Use `POST /v1/gates/doubt-the-machine/review-records/validate` for Experiment 001 row/schema validation.
@@ -31,6 +33,8 @@ Use this skill when a task asks to apply, expose, test, or integrate the Doubt t
 - Endpoint values stay `human | agent` for both `artifact_origin` and `reviewer_type`.
 - The endpoint matrix stays `human→human`, `human→agent`, `agent→human`, and `agent→agent` using `origin→reviewer` labels.
 - The API must not decide that a claim is true. It may recommend effort, identify missing evidence, and validate records.
+- The OpenAI-compatible runner must preserve `/v1/models`, `/v1/chat/completions`, `/v1/local-models`, and model id `gengatewai/doubt-runner`.
+- Local LM Studio/Ollama recruitment is disabled by default; LAN Ollama autodetect is opt-in only, and local lab details must stay out of git.
 - Human and agent reviewer cohorts are reported separately; do not pool them in the primary analysis.
 - Treat API output as structured project state, not as external proof of the framework’s effectiveness.
 

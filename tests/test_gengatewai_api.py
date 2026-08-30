@@ -3,7 +3,9 @@ from __future__ import annotations
 from fastapi.testclient import TestClient
 
 from api.gengatewai.app import app
-from api.gengatewai.models import MAX_CLAIM_LENGTH, MAX_REVIEW_RECORDS
+from api.gengatewai.contracts import OPENAI_COMPATIBLE_RUNNER_MODEL
+from api.gengatewai.local_models import LOCAL_MODELS_MODE_ENV
+from api.gengatewai.models import MAX_CLAIM_LENGTH, MAX_OPENAI_MESSAGES, MAX_REVIEW_RECORDS
 
 client = TestClient(app)
 
@@ -53,7 +55,123 @@ def test_framework_contract_exposes_gate_and_endpoints() -> None:
     ]
     assert body["endpoint_matrix"]["per_reviewer_cohort_endpoint_cells"]["human"] == ["human→human", "agent→human"]
     assert body["conditions"] == ["ordinary_control", "active_placebo", "doubt_gate"]
+    assert body["openai_compatible_runner"]["model"] == OPENAI_COMPATIBLE_RUNNER_MODEL
+    assert body["openai_compatible_runner"]["endpoints"] == ["/v1/models", "/v1/chat/completions", "/v1/local-models"]
+    assert body["openai_compatible_runner"]["streaming"] is False
+    assert body["openai_compatible_runner"]["local_model_providers"] == ["lmstudio", "ollama"]
+    assert body["openai_compatible_runner"]["local_model_discovery_default"] == "off"
+    assert body["openai_compatible_runner"]["lan_autodetect"] == "opt-in only"
+    assert body["openai_compatible_runner"]["does_not_call_external_models_by_default"] is True
     assert body["does_not_decide_truth"] is True
+
+
+def test_openai_compatible_models_endpoint_lists_runner() -> None:
+    response = client.get("/v1/models")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["object"] == "list"
+    assert body["data"][0]["id"] == OPENAI_COMPATIBLE_RUNNER_MODEL
+    assert body["data"][0]["object"] == "model"
+
+
+def test_local_model_capacity_is_off_by_default(monkeypatch) -> None:
+    monkeypatch.delenv(LOCAL_MODELS_MODE_ENV, raising=False)
+
+    response = client.get("/v1/local-models")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["enabled"] is False
+    assert body["mode"] == "off"
+    assert body["models"] == []
+
+
+def test_openai_compatible_chat_completion_runs_doubt_gate() -> None:
+    response = client.post(
+        "/v1/chat/completions",
+        json={
+            "model": OPENAI_COMPATIBLE_RUNNER_MODEL,
+            "messages": [
+                {"role": "system", "content": "Use the Doubt loop."},
+                {
+                    "role": "user",
+                    "content": "CLAIM: This benchmark proves the framework is generally safe.\nFAILURE: Benchmark leakage.",
+                },
+            ],
+            "metadata": {
+                "artifact_origin": "agent",
+                "reviewer_type": "agent",
+                "external_claim": True,
+            },
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["object"] == "chat.completion"
+    assert body["model"] == OPENAI_COMPATIBLE_RUNNER_MODEL
+    assert body["choices"][0]["finish_reason"] == "stop"
+    content = body["choices"][0]["message"]["content"]
+    assert "DOUBT → MEASURE → TEST → REVERT → REPEAT" in content
+    assert "Verification effort: high" in content
+    assert "Missing gate fields: EVIDENCE, TEST, REVERSAL" in content
+    assert "does not decide whether the claim is true" in content
+    assert body["usage"]["total_tokens"] >= body["usage"]["completion_tokens"] >= 1
+
+
+def test_openai_compatible_chat_completion_accepts_metadata_gate() -> None:
+    response = client.post(
+        "/v1/chat/completions",
+        json={
+            "model": OPENAI_COMPATIBLE_RUNNER_MODEL,
+            "messages": [{"role": "user", "content": "Please run the gate."}],
+            "metadata": {
+                "artifact_origin": "human",
+                "reviewer_type": "human",
+                "uncertainty": "low",
+                "consequence": "low",
+                "reversibility": "easy",
+                "gate": {
+                    "CLAIM": "typo only",
+                    "FAILURE": "meaning drift",
+                    "EVIDENCE": "diff",
+                    "TEST": "read rendered section",
+                    "REVERSAL": "git revert",
+                },
+            },
+        },
+    )
+
+    assert response.status_code == 200
+    content = response.json()["choices"][0]["message"]["content"]
+    assert "Claim under review: typo only" in content
+    assert "Verification effort: light" in content
+    assert "Missing gate fields: none" in content
+
+
+def test_openai_compatible_chat_completion_rejects_unsupported_features() -> None:
+    bad_model = client.post(
+        "/v1/chat/completions",
+        json={"model": "gpt-5.6", "messages": [{"role": "user", "content": "claim"}]},
+    )
+    assert bad_model.status_code == 404
+
+    streaming = client.post(
+        "/v1/chat/completions",
+        json={"model": OPENAI_COMPATIBLE_RUNNER_MODEL, "stream": True, "messages": [{"role": "user", "content": "claim"}]},
+    )
+    assert streaming.status_code == 400
+
+
+def test_openai_compatible_chat_completion_rejects_oversized_message_batch() -> None:
+    response = client.post(
+        "/v1/chat/completions",
+        json={
+            "model": OPENAI_COMPATIBLE_RUNNER_MODEL,
+            "messages": [{"role": "user", "content": "claim"}] * (MAX_OPENAI_MESSAGES + 1),
+        },
+    )
+
+    assert response.status_code == 422
 
 
 def test_evaluate_high_effort_external_claim_keeps_missing_fields() -> None:

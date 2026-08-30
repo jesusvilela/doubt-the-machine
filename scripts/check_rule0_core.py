@@ -29,6 +29,8 @@ REQUIRED = [
     "api/gengatewai/contracts.py",
     "api/gengatewai/app.py",
     "api/gengatewai/service.py",
+    "api/gengatewai/openai_compat.py",
+    "api/gengatewai/local_models.py",
     "api/gengatewai/mcp_server.py",
     "skills/doubt-the-machine-api/SKILL.md",
     "skills/doubt-the-machine-api/references/api-contract.md",
@@ -255,6 +257,46 @@ def validate_api_contract() -> None:
         fail("GenGatewAI API contract must preserve the endpoint matrix")
     if sample.get("full_crossed_endpoint_reviews_if_both_cohorts_run") != 864:
         fail("GenGatewAI API contract must preserve the full crossed endpoint sample")
+
+    if api_contracts.OPENAI_COMPATIBLE_RUNNER_MODEL != "gengatewai/doubt-runner":
+        fail("OpenAI-compatible runner model id must remain stable")
+    if tuple(api_contracts.OPENAI_COMPATIBLE_ENDPOINTS) != ("/v1/models", "/v1/chat/completions", "/v1/local-models"):
+        fail("OpenAI-compatible runner endpoints must remain stable")
+    if tuple(api_contracts.LOCAL_MODEL_PROVIDERS) != ("lmstudio", "ollama"):
+        fail("OpenAI-compatible runner must preserve LM Studio and Ollama providers")
+    if tuple(api_contracts.LOCAL_MODEL_DISCOVERY_MODES) != ("off", "localhost", "lan"):
+        fail("OpenAI-compatible runner must preserve off/localhost/lan discovery modes")
+
+    app_text = (ROOT / "api/gengatewai/app.py").read_text(encoding="utf-8")
+    runner_text = (ROOT / "api/gengatewai/openai_compat.py").read_text(encoding="utf-8")
+    local_models_text = (ROOT / "api/gengatewai/local_models.py").read_text(encoding="utf-8")
+    api_doc = (ROOT / "API.md").read_text(encoding="utf-8")
+    skill = (ROOT / "skills/doubt-the-machine-api/SKILL.md").read_text(encoding="utf-8")
+    reference = (ROOT / "skills/doubt-the-machine-api/references/api-contract.md").read_text(encoding="utf-8")
+    for required in (
+        "/v1/models",
+        "/v1/chat/completions",
+        "/v1/local-models",
+        "gengatewai/doubt-runner",
+        "does not decide whether the claim is true",
+    ):
+        if required not in app_text + runner_text + api_doc + skill + reference:
+            fail(f"OpenAI-compatible runner contract missing: {required}")
+    for required in (
+        "GENGATEWAI_LOCAL_MODELS",
+        "GENGATEWAI_LAN_OLLAMA_BASE_URLS",
+        "127.0.0.1:1234",
+        "127.0.0.1:11434",
+        "LAN Ollama autodetection is enabled",
+    ):
+        if required not in local_models_text + api_doc + reference:
+            fail(f"local model autodetect contract missing: {required}")
+    gitignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
+    for required in (".env", ".env.*", ".gengatewai.local*", "local-lab*"):
+        if required not in gitignore:
+            fail(f"local lab detail pattern missing from .gitignore: {required}")
+    if "does_not_call_external_models_by_default" not in runner_text + api_doc + reference + str(api_contracts.framework_contract()):
+        fail("OpenAI-compatible runner must document that local/external calls are disabled by default")
 
 
 def validate_mcp_contract() -> None:
