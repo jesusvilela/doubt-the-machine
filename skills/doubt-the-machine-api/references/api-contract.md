@@ -16,6 +16,16 @@
 - Always report missing gate fields rather than filling them in.
 - Never return an “accepted” or “true” verdict for the claim.
 
+## Endpoint matrix
+
+Experiment 001 uses a two-ended endpoint matrix. Both ends are explicit:
+
+- artifact origin: `human | agent`;
+- reviewer side: `human | agent`;
+- endpoint cells: `human→human`, `human→agent`, `agent→human`, `agent→agent`, where labels mean `origin→reviewer`.
+
+A single reviewer cohort covers the two cells for that reviewer side. Running both human and agent reviewer cohorts covers the full four-cell matrix.
+
 ## Review-record validation
 
 The validator must enforce:

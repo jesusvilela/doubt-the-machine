@@ -21,6 +21,7 @@ Use this skill when a task asks to apply, expose, test, or integrate the Doubt t
 - The gate fields stay `CLAIM / FAILURE / EVIDENCE / TEST / REVERSAL`.
 - Experiment 001 conditions stay `ordinary_control / active_placebo / doubt_gate`.
 - Endpoint values stay `human | agent` for both `artifact_origin` and `reviewer_type`.
+- The endpoint matrix stays `human→human`, `human→agent`, `agent→human`, and `agent→agent` using `origin→reviewer` labels.
 - The API must not decide that a claim is true. It may recommend effort, identify missing evidence, and validate records.
 - Human and agent reviewer cohorts are reported separately; do not pool them in the primary analysis.
 - Treat API output as structured project state, not as external proof of the framework’s effectiveness.

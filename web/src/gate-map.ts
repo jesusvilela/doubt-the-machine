@@ -29,6 +29,19 @@ export function endpointCell(origin: EndpointValue, reviewer: EndpointValue): st
   return `${origin}→${reviewer}`;
 }
 
+export const endpointCells = endpointValues.flatMap((artifact_origin) =>
+  endpointValues.map((reviewer_type) => ({
+    artifact_origin,
+    reviewer_type,
+    label: endpointCell(artifact_origin, reviewer_type),
+  })),
+);
+
+export const perReviewerCohortEndpointCells = {
+  human: endpointValues.map((artifact_origin) => endpointCell(artifact_origin, "human")),
+  agent: endpointValues.map((artifact_origin) => endpointCell(artifact_origin, "agent")),
+} as const;
+
 export function effortWeight(effort: Effort): number {
   return effort === "high" ? 3 : effort === "standard" ? 2 : 1;
 }
@@ -60,17 +73,12 @@ export function buildGateMap(summary: GateEvaluationSummary = {}): { nodes: Gate
     active: label === selectedEffort,
   }));
 
-  const endpointNodes = endpointValues.flatMap((origin) =>
-    endpointValues.map((reviewer) => {
-      const label = endpointCell(origin, reviewer);
-      return {
-        id: `endpoint:${label}`,
-        label,
-        kind: "endpoint" as const,
-        active: label === selectedEndpoint,
-      };
-    }),
-  );
+  const endpointNodes = endpointCells.map((cell) => ({
+    id: `endpoint:${cell.label}`,
+    label: cell.label,
+    kind: "endpoint" as const,
+    active: cell.label === selectedEndpoint,
+  }));
 
   const edges = devLoop.slice(0, -1).map((step, index) => ({
     from: `loop:${step}`,

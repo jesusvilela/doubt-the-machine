@@ -1,11 +1,19 @@
 import { describe, expect, it } from "vitest";
 
-import { buildGateMap, effortWeight, endpointCell } from "./gate-map.js";
+import { buildGateMap, effortWeight, endpointCell, endpointCells, perReviewerCohortEndpointCells } from "./gate-map.js";
 
 describe("gate map", () => {
   it("maps endpoint cells consistently", () => {
     expect(endpointCell("human", "agent")).toBe("human→agent");
     expect(endpointCell("agent", "human")).toBe("agent→human");
+    expect(endpointCells.map((cell) => cell.label)).toEqual([
+      "human→human",
+      "human→agent",
+      "agent→human",
+      "agent→agent",
+    ]);
+    expect(perReviewerCohortEndpointCells.human).toEqual(["human→human", "agent→human"]);
+    expect(perReviewerCohortEndpointCells.agent).toEqual(["human→agent", "agent→agent"]);
   });
 
   it("marks missing gate fields inactive and selected effort active", () => {
