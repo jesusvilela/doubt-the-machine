@@ -57,9 +57,14 @@ def _normalize_semantic_text(value: str) -> str:
 
 
 def _contains_concept(text: str, concept: str) -> bool:
-    normalized_text = f" {_normalize_semantic_text(text)} "
+    normalized_text = _normalize_semantic_text(text)
     normalized_concept = _normalize_semantic_text(concept)
-    return bool(normalized_concept) and f" {normalized_concept} " in normalized_text
+    if not normalized_concept:
+        return False
+    if " " in normalized_concept:
+        return f" {normalized_concept} " in f" {normalized_text} "
+    tokens = set(normalized_text.split())
+    return normalized_concept in tokens or f"{normalized_concept}s" in tokens or f"{normalized_concept}es" in tokens
 
 
 def _meaning_errors(text: str, contract: dict[str, Any]) -> list[str]:
