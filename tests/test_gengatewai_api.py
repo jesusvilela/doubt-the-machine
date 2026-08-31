@@ -132,12 +132,15 @@ def test_openai_compatible_chat_completion_runs_doubt_gate() -> None:
     content = body["choices"][0]["message"]["content"]
     assert "DOUBT → MEASURE → TEST → REVERT → REPEAT" in content
     assert "Verification effort: high" in content
+    assert "Gate form complete: no" in content
+    assert "Gate substance assessed by this runner: no" in content
+    assert "Cleared for action by this runner: no" in content
     assert "Missing gate fields: EVIDENCE, TEST, REVERSAL" in content
     assert "does not decide whether the claim is true" in content
     assert body["usage"]["total_tokens"] >= body["usage"]["completion_tokens"] >= 1
 
 
-def test_openai_compatible_chat_completion_accepts_metadata_gate() -> None:
+def test_openai_compatible_chat_completion_accepts_metadata_gate_without_implying_clearance() -> None:
     response = client.post(
         "/v1/chat/completions",
         json={
@@ -164,6 +167,10 @@ def test_openai_compatible_chat_completion_accepts_metadata_gate() -> None:
     content = response.json()["choices"][0]["message"]["content"]
     assert "Claim under review: typo only" in content
     assert "Verification effort: light" in content
+    assert "Gate form complete: yes" in content
+    assert "Gate substance assessed by this runner: no" in content
+    assert "Cleared for action by this runner: no" in content
+    assert "Next required action: assess_gate_substance" in content
     assert "Missing gate fields: none" in content
 
 
@@ -208,11 +215,14 @@ def test_evaluate_high_effort_external_claim_keeps_missing_fields() -> None:
     body = response.json()
     assert body["verification_effort"] == "high"
     assert body["missing_gate_fields"] == ["FAILURE", "EVIDENCE", "TEST", "REVERSAL"]
-    assert body["next_required_action"] == "complete_gate"
+    assert body["gate_form_complete"] is False
+    assert body["gate_substance_assessed"] is False
+    assert body["next_required_action"] == "complete_gate_form"
     assert body["does_not_decide_truth"] is True
+    assert body["does_not_clear_for_action"] is True
 
 
-def test_evaluate_light_effort_for_low_risk_complete_gate() -> None:
+def test_evaluate_light_effort_complete_gate_requires_substance_review() -> None:
     response = client.post(
         "/v1/gates/doubt-the-machine/evaluate",
         json={
@@ -235,7 +245,84 @@ def test_evaluate_light_effort_for_low_risk_complete_gate() -> None:
     body = response.json()
     assert body["verification_effort"] == "light"
     assert body["missing_gate_fields"] == []
-    assert body["next_required_action"] == "run_required_checks"
+    assert body["gate_form_complete"] is True
+    assert body["gate_substance_assessed"] is False
+    assert body["ceremony_signals"] == []
+    assert "evidence_quality_and_independence" in body["unassessed_dimensions"]
+    assert body["next_required_action"] == "assess_gate_substance"
+    assert body["does_not_clear_for_action"] is True
+
+
+def test_evaluate_high_effort_complete_gate_requires_substance_and_independent_review() -> None:
+    response = client.post(
+        "/v1/gates/doubt-the-machine/evaluate",
+        json={
+            "claim": "This external benchmark proves a general effect.",
+            "artifact_origin": "human",
+            "reviewer_type": "human",
+            "external_claim": True,
+            "gate": {
+                "CLAIM": "bounded external effect claim",
+                "FAILURE": "benchmark leakage",
+                "EVIDENCE": "primary benchmark records",
+                "TEST": "held-out replication",
+                "REVERSAL": "withdraw claim",
+            },
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["verification_effort"] == "high"
+    assert body["gate_form_complete"] is True
+    assert body["gate_substance_assessed"] is False
+    assert body["next_required_action"] == "assess_gate_substance_and_preregister_or_independent_review"
+    assert body["does_not_clear_for_action"] is True
+
+
+def test_evaluate_ceremonial_placeholders_do_not_become_clearance() -> None:
+    response = client.post(
+        "/v1/gates/doubt-the-machine/evaluate",
+        json={
+            "claim": "Deploy this change.",
+            "artifact_origin": "human",
+            "reviewer_type": "human",
+            "gate": {
+                "CLAIM": ".",
+                "FAILURE": ".",
+                "EVIDENCE": "none, I made it up",
+                "TEST": "none",
+                "REVERSAL": "impossible",
+            },
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["missing_gate_fields"] == []
+    assert body["gate_form_complete"] is True
+    assert body["gate_substance_assessed"] is False
+    assert body["does_not_clear_for_action"] is True
+    assert body["next_required_action"] == "assess_gate_substance"
+    assert set(body["ceremony_signals"]) == {
+        "CLAIM:low_information_placeholder",
+        "FAILURE:low_information_placeholder",
+        "EVIDENCE:low_information_placeholder",
+        "TEST:low_information_placeholder",
+    }
+    assert any("form completeness checks only" in warning for warning in body["warnings"])
+
+
+def test_agent_origin_warning_does_not_treat_human_reviewer_as_independent_by_definition() -> None:
+    response = client.post(
+        "/v1/gates/doubt-the-machine/evaluate",
+        json={
+            "claim": "Review an agent-generated artifact.",
+            "artifact_origin": "agent",
+            "reviewer_type": "human",
+            "gate": {},
+        },
+    )
+    assert response.status_code == 200
+    assert any("reviewer type alone does not establish independence" in warning for warning in response.json()["warnings"])
 
 
 def test_evaluate_rejects_case_variant_gate_key_collision() -> None:
