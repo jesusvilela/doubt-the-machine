@@ -8,6 +8,7 @@ from pydantic import ValidationError
 
 from api.gengatewai.contracts import FRAMEWORK_SLUG, GATE_FIELDS
 from api.gengatewai.experiment_amendments import apply_experiment_001_amendment
+from api.gengatewai.gate_substance import ceremony_warnings
 from api.gengatewai.models import (
     MAX_VALIDATION_ERRORS,
     MAX_VALIDATION_ERRORS_PER_ROW,
@@ -63,27 +64,34 @@ def evaluate_gate(request: GateEvaluationRequest) -> GateEvaluationResponse:
     effort, reasons = evaluate_effort(request)
     gate = normalize_gate(request.gate)
     missing = [field for field in GATE_FIELDS if not gate.get(field)]
+    form_complete = not missing
+    ceremony = ceremony_warnings(gate, request.claim)
 
-    warnings = ["This API does not decide whether the claim is true or acceptable."]
+    warnings = [
+        "This API does not decide whether the claim is true or acceptable.",
+        "Field completion is not verification; this service does not assess gate substance and cannot detect every ceremonial gate.",
+    ]
     if missing:
-        warnings.append("Gate record is incomplete; missing fields must be filled by the reviewer.")
+        warnings.append("Gate form is incomplete; missing fields must be filled by the reviewer before substance can be assessed.")
+    if ceremony:
+        warnings.append("Ceremony heuristics are warnings only; they must not be treated as truth, quality, or safety verdicts.")
     if request.artifact_origin.value == "agent" and request.reviewer_type.value == "agent":
         warnings.append("agent→agent review still needs evidence independent of the model path.")
 
-    if missing:
-        next_action = "complete_gate"
-    elif effort == "high":
-        next_action = "preregister_or_independent_review"
-    else:
-        next_action = "run_required_checks"
+    next_action = "complete_gate_form" if missing else "assess_gate_substance"
+    after_substance = "preregister_or_independent_review" if effort == "high" else "run_required_checks"
 
     return GateEvaluationResponse(
         framework=FRAMEWORK_SLUG,
         verification_effort=effort,
         reasons=reasons,
         missing_gate_fields=missing,
+        gate_form_complete=form_complete,
+        gate_substance_assessed=False,
+        ceremony_warnings=ceremony,
         warnings=warnings,
         next_required_action=next_action,
+        required_after_substance_assessment=after_substance,
     )
 
 
