@@ -52,6 +52,8 @@ A non-loopback host is rejected by design.
 
 The ceremony heuristics are deliberately weak warning signals only. Obvious placeholders, extremely short fields, claim-as-evidence repetition, or evidence with no obvious observable marker can be flagged; absence of a warning does not mean a gate is good, true, safe, or sufficient.
 
+The endpoint matrix is also **not an independence matrix**. `human→human`, `human→agent`, `agent→human`, and `agent→agent` describe who produced and reviewed an artifact, not where the review evidence came from. A human can reuse the producing model path and an agent can consult external evidence. `evaluate_doubt_gate` therefore emits the same provenance-based independence warning for every endpoint pairing.
+
 ## Resources
 
 - `gengatewai://doubt-the-machine/contract`
@@ -77,7 +79,7 @@ The two-ended endpoint matrix is unchanged:
 | `agent` | `human` | `agent→human` |
 | `agent` | `agent` | `agent→agent` |
 
-A single reviewer cohort covers the two cells for that reviewer side. Running both human and agent reviewer cohorts covers the full four-cell matrix.
+A single reviewer cohort covers the two cells for that reviewer side. Running both human and agent reviewer cohorts covers the full four-cell matrix. These endpoint labels do not establish evidence-source independence.
 
 ## Client configuration sketch
 
