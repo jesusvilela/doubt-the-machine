@@ -55,13 +55,18 @@ DOCTRINE_SURFACES = [
     "skills/doubt-the-machine-api/references/api-contract.md",
 ]
 
-RETIRED_PHRASES = [
-    "No test, no merge",
-    "Own every changed line",
-    "Count how often it disagrees with you",
-    "Count disagreement",
-    "uncertainty × consequence × irreversibility",
-]
+
+def _retired_phrases(root: Path = ROOT) -> list[str]:
+    """Load retired wording without duplicating forbidden literals in the harness source."""
+    payload = json.loads((root / "retired.json").read_text(encoding="utf-8"))
+    return [
+        str(phrase)
+        for entry in payload.get("entries", [])
+        if isinstance(entry, dict)
+        for phrase in entry.get("retired", [])
+        if str(phrase)
+    ]
+
 
 VALID_RESULT_ROW = (
     "t1,code_review,doubt_gate,v1,human,r1,human,c1,2,1,1,0,0,1,0,2,9.5,"
@@ -194,7 +199,7 @@ class Ambigator:
 
     def retired_reintroduction(self, rng: random.Random, seed: int) -> Mutation:
         surface = rng.choice(self.surfaces + ["assets/doubt-the-machine.svg", "web/src/gate-map.ts"])
-        phrase = rng.choice(RETIRED_PHRASES)
+        phrase = rng.choice(_retired_phrases())
 
         def apply(root: Path) -> None:
             path = root / surface
@@ -326,7 +331,7 @@ class Ambigator:
         )
 
     def graveyard_erasure(self, rng: random.Random, seed: int) -> Mutation:
-        phrase = rng.choice(RETIRED_PHRASES[:3])
+        phrase = rng.choice(_retired_phrases()[:3])
 
         def apply(root: Path) -> None:
             path = root / "GRAVEYARD.md"
