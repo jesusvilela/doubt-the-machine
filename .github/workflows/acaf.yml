@@ -26,6 +26,9 @@ jobs:
       - name: Run deep ACAF sweep
         run: python scripts/acaf_ambigator.py --seeds 25 --max-escape-rate 0.0 --max-false-alarm-rate 0.0 --json acaf.json --quiet
 
+      - name: Run operational meaning matrix
+        run: python scripts/acaf_meaning_matrix.py --max-inversion-escape-rate 0.0 --max-paraphrase-false-alarm-rate 0.0 --json acaf-meaning.json
+
       - name: Write ACAF summary
         if: always()
         run: |
@@ -33,16 +36,27 @@ jobs:
           import json
           from pathlib import Path
 
-          path = Path("acaf.json")
           print("## ACAF nightly")
-          if not path.exists():
-              print("\nNo result file was produced; inspect generator-integrity and sweep steps.")
+          base = Path("acaf.json")
+          if not base.exists():
+              print("\nNo base ACAF result file was produced; inspect generator-integrity and sweep steps.")
           else:
-              summary = json.loads(path.read_text(encoding="utf-8"))["summary"]
+              summary = json.loads(base.read_text(encoding="utf-8"))["summary"]
               print()
-              print(f"- Mutations: **{summary['total_mutations']}**")
+              print(f"- Base mutations: **{summary['total_mutations']}**")
               print(f"- Escape rate: **{summary['escape_rate']:.3f}** ({summary['escaped']}/{summary['must_catch']})")
               print(f"- False-alarm rate: **{summary['false_alarm_rate']:.3f}** ({summary['false_alarms']}/{summary['must_pass']})")
+
+          meaning = Path("acaf-meaning.json")
+          if not meaning.exists():
+              print("\nNo operational-meaning matrix result was produced; inspect that step.")
+          else:
+              m = json.loads(meaning.read_text(encoding="utf-8"))["summary"]
               print()
-              print("These rates describe only the declared ACAF mutation span; they are not evidence that the framework is effective.")
+              print(f"- Meaning cases: **{m['total_cases']}** (27 inversions + 27 paraphrases)")
+              print(f"- Inversion escape rate: **{m['inversion_escape_rate']:.3f}** ({m['escaped_inversions']}/{m['inversions']})")
+              print(f"- Paraphrase false-alarm rate: **{m['paraphrase_false_alarm_rate']:.3f}** ({m['paraphrase_false_alarms']}/{m['paraphrases']})")
+
+          print()
+          print("These rates describe only the declared ACAF mutation and operational-meaning spans; they are not evidence that the framework is effective or that CI performs general semantic entailment.")
           PY
