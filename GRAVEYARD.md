@@ -112,6 +112,20 @@ The exact retired poster labels were:
 
 **Status:** superseded before result collection; measurement design changed, rule content unchanged.
 
+## 2026-08-31 — tock-005 decidability correction
+
+### Retired: confirmatory interpretation of Experiment 001's fixed-N sample
+
+**Failure mode:** the primary estimand is per important seeded defect, but the preregistration fixed task-review counts rather than the number of important defects contributed by each task. Before any result existed, it also did not supply an empirically grounded baseline escape probability or reviewer/matched-task dependence estimate. The fixed 432-review cohort therefore had **unknown confirmatory decidability**; the repository could not honestly claim that the design was powered to promote or kill the effectiveness hypothesis.
+
+**Evidence / counterexample:** the adversarial audit identified that the denominator for the primary contrast was not fixed and that power depended materially on unstated baseline/ICC/defects-per-task assumptions. The audit's illustrative power numbers were assumption-dependent; the closed finding is the missing planning quantities, not a specific numerical power verdict. At amendment time `results.csv` still contained only its header, so no outcome had been inspected.
+
+**Replacement:** preserve `preregistration.json` byte-for-byte and add the prospective `amendment-2026-08-31-pilot.json`. Experiment 001 remains a fixed-N randomized three-arm, two-origin **design pilot** used to estimate the realized important-defect denominator, baseline arm/family/origin rates, reviewer/matched-task dependence, false alarms, review cost, and realism retention. It cannot promote or kill the H-level effectiveness claim. A separate powered replication must be preregistered from frozen pilot planning estimates before replication outcomes exist.
+
+**Reversal of the replacement:** if a future independent design audit shows that the original fixed-N protocol had a valid confirmatory power argument using only quantities frozen before the 2026-08-31 amendment, record that evidence and supersede this pilot-only interpretation explicitly; do not silently rewrite the amendment or original preregistration.
+
+**Status:** confirmatory interpretation superseded prospectively before result collection; original preregistration preserved as correction history.
+
 ## Machine-readable retirement source
 
 `retired.json` is the machine-readable ledger used by CI to prevent retired wording from reappearing on declared public surfaces. This human-readable graveyard preserves the reasons, evidence, and replacements.
