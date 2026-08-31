@@ -1,6 +1,6 @@
 # GenGatewAI API
 
-GenGatewAI exposes Doubt the Machine as a deterministic cloud API. It recommends verification effort, reports missing gate fields, and validates Experiment 001 records. It does **not** decide whether a claim is true.
+GenGatewAI exposes Doubt the Machine as a deterministic cloud API. It recommends verification effort, reports missing gate fields, distinguishes **form completion from substantive verification**, emits bounded ceremony heuristics, and validates Experiment 001 records. It does **not** decide whether a claim is true.
 
 ## Local run
 
@@ -20,6 +20,18 @@ Then open:
 - `POST /v1/gates/doubt-the-machine/evaluate`
 - `POST /v1/gates/doubt-the-machine/review-records/validate`
 - `GET /v1/experiments/001-seeded-errors`
+
+## Gate evaluation boundary
+
+`POST /v1/gates/doubt-the-machine/evaluate` preserves the original action vocabulary for compatibility, but now makes a critical distinction explicit:
+
+- `gate_form_complete` says only whether all five fields contain non-empty text;
+- `gate_substance_assessed` is always `false` because this service does not establish whether the evidence, test, failure model, or rollback is substantively adequate;
+- `ceremony_warnings` contains cheap warning heuristics for obvious placeholders, extremely short fields, claim-as-evidence repetition, or evidence with no obvious source/artifact/command/path/run/numeric marker;
+- those heuristics are warnings only and never acceptance, truth, quality, or safety verdicts;
+- `missing_gate_fields` and `next_required_action` remain for compatibility.
+
+A response can therefore legitimately contain `gate_form_complete: true` and `gate_substance_assessed: false`. That is the intended state, not an error. Field completion is not verification.
 
 ## OpenAI-compatible runner
 
