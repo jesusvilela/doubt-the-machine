@@ -22,6 +22,8 @@ MAX_ARTIFACT_LENGTH = 65_536
 MAX_GATE_VALUE_LENGTH = 8_192
 MAX_NOTES_LENGTH = 8_192
 MAX_REVIEW_RECORDS = 1_000
+MAX_VALIDATION_ERRORS = 100
+MAX_VALIDATION_ERRORS_PER_ROW = 3
 MAX_OPENAI_MESSAGES = 64
 MAX_OPENAI_MESSAGE_CONTENT_LENGTH = 65_536
 MAX_OPENAI_TOTAL_MESSAGE_CHARS = 131_072
@@ -78,9 +80,13 @@ class GateEvaluationRequest(StrictModel):
     @classmethod
     def validate_gate_keys(cls, gate: dict[str, GateValue | None]) -> dict[str, GateValue | None]:
         allowed = set(GATE_FIELDS)
+        normalized = [str(key).upper() for key in gate]
         unexpected = sorted(str(key) for key in gate if str(key).upper() not in allowed)
         if unexpected:
             raise ValueError(f"unexpected gate fields: {', '.join(unexpected)}")
+        if len(set(normalized)) != len(normalized):
+            collisions = sorted({name for name in normalized if normalized.count(name) > 1})
+            raise ValueError(f"gate fields collide after case normalization: {', '.join(collisions)}")
         return gate
 
 
@@ -135,6 +141,8 @@ class ReviewRecordValidationError(StrictModel):
 class ReviewRecordsValidationResponse(StrictModel):
     valid: bool
     accepted_rows: int
+    error_count: NonNegativeInt
+    errors_truncated: bool
     errors: list[ReviewRecordValidationError]
 
 

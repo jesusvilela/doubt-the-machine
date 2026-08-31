@@ -95,7 +95,13 @@ def test_mcp_validates_experiment_records() -> None:
     result = run_mcp(mcp.call_tool("validate_experiment_001_records", {"records": [valid_record()]}))
 
     assert result.is_error is False
-    assert result.structured_content == {"valid": True, "accepted_rows": 1, "errors": []}
+    assert result.structured_content == {
+        "valid": True,
+        "accepted_rows": 1,
+        "error_count": 0,
+        "errors_truncated": False,
+        "errors": [],
+    }
 
 
 def test_mcp_rejects_oversized_record_batch_without_crashing() -> None:

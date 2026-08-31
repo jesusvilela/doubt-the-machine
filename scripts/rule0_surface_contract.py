@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-MAP_PATH = "rule0_surface_map.json"
+MAP_PATH = "rules.json"
 RETIREMENT_PATH = "retired.json"
 TEXT_SUFFIXES = {
     ".css",
@@ -70,17 +70,17 @@ def validate_readme_structure(root: Path = ROOT) -> None:
     panels = mapping.get("panels")
     gate_fields = mapping.get("gate_fields")
     if not isinstance(panels, list) or len(panels) != 3:
-        raise SurfaceContractError("surface map must define exactly three panels")
+        raise SurfaceContractError("rules.json must define exactly three panels")
     if gate_fields != ["CLAIM", "FAILURE", "EVIDENCE", "TEST", "REVERSAL"]:
-        raise SurfaceContractError("surface map must preserve the five 60-second gate fields")
+        raise SurfaceContractError("rules.json must preserve the five 60-second gate fields")
 
     headings = [str(panel.get("heading", "")) for panel in panels if isinstance(panel, dict)]
     if len(headings) != 3 or len(set(headings)) != 3:
-        raise SurfaceContractError("surface map panel headings must be unique")
+        raise SurfaceContractError("rules.json panel headings must be unique")
 
     for index, panel in enumerate(panels):
         if not isinstance(panel, dict):
-            raise SurfaceContractError("surface map panels must be objects")
+            raise SurfaceContractError("rules.json panels must be objects")
         rules = panel.get("rules")
         if not isinstance(rules, list) or len(rules) != 9:
             raise SurfaceContractError(f"{headings[index]} must map exactly nine rules")
@@ -92,7 +92,7 @@ def validate_readme_structure(root: Path = ROOT) -> None:
         if numbers != list(range(1, 10)):
             raise SurfaceContractError(f"{headings[index]} must contain numbered rule rows 1 through 9 exactly once")
         if titles != expected_titles:
-            raise SurfaceContractError(f"{headings[index]} rule titles drifted from the canonical surface map")
+            raise SurfaceContractError(f"{headings[index]} rule titles drifted from rules.json")
         if "**Reflexive check:**" not in section:
             raise SurfaceContractError(f"{headings[index]} must retain its reflexive Rule 0 check")
 
@@ -128,19 +128,19 @@ def validate_poster_structure(root: Path = ROOT) -> None:
     expected_labels: list[str] = []
     for panel in panels:
         if not isinstance(panel, dict):
-            raise SurfaceContractError("surface map panels must be objects")
+            raise SurfaceContractError("rules.json panels must be objects")
         poster_heading = str(panel.get("poster_heading", "")).strip()
         if not poster_heading or poster_heading not in poster_text:
             raise SurfaceContractError(f"poster missing panel heading: {poster_heading or '<empty>'}")
         for rule in panel.get("rules", []):
             if not isinstance(rule, dict):
-                raise SurfaceContractError("surface map rules must be objects")
+                raise SurfaceContractError("rules.json rules must be objects")
             label = str(rule.get("poster", "")).strip()
             if not label:
                 raise SurfaceContractError("every mapped rule needs a poster label")
             expected_labels.append(label)
     if len(expected_labels) != 27 or len(set(expected_labels)) != 27:
-        raise SurfaceContractError("surface map must define 27 unique poster rule labels")
+        raise SurfaceContractError("rules.json must define 27 unique poster rule labels")
     missing = [label for label in expected_labels if label not in poster_text]
     if missing:
         raise SurfaceContractError(f"poster missing active rule labels: {', '.join(missing[:3])}")
@@ -202,6 +202,7 @@ def validate_retired_repo_wide(root: Path = ROOT) -> None:
     entries = ledger.get("entries")
     if not isinstance(entries, list) or not entries:
         raise SurfaceContractError("retired.json must contain a non-empty entries list")
+
     retired_phrases: list[str] = []
     for entry in entries:
         if not isinstance(entry, dict) or not isinstance(entry.get("retired"), list):
@@ -209,6 +210,15 @@ def validate_retired_repo_wide(root: Path = ROOT) -> None:
         retired_phrases.extend(str(phrase) for phrase in entry["retired"] if str(phrase))
     if not retired_phrases:
         raise SurfaceContractError("retired.json must contain retired phrases")
+
+    # Correction history is part of the contract: every retired wording variant must remain
+    # recoverable, not merely one representative phrase per retirement entry.
+    graveyard = (root / "GRAVEYARD.md").read_text(encoding="utf-8")
+    missing_history = [phrase for phrase in retired_phrases if phrase not in graveyard]
+    if missing_history:
+        raise SurfaceContractError(
+            "graveyard does not preserve every retired wording variant: " + ", ".join(missing_history[:3])
+        )
 
     whole_files, json_scopes = _retirement_exemptions(ledger)
     for path, relative in _iter_text_files(root):
@@ -226,7 +236,9 @@ def validate_retired_repo_wide(root: Path = ROOT) -> None:
             text = path.read_text(encoding="utf-8", errors="ignore")
         for phrase in retired_phrases:
             if phrase in text:
-                raise SurfaceContractError(f"retired wording reintroduced outside an explicit historical exemption: {relative}: {phrase}")
+                raise SurfaceContractError(
+                    f"retired wording reintroduced outside an explicit historical exemption: {relative}: {phrase}"
+                )
 
 
 def validate_surface_contract(root: Path = ROOT) -> None:

@@ -1,5 +1,6 @@
 {
-  "version": 1,
+  "version": 2,
+  "scope": "Canonical rule identity only: panel headings, README rule titles, poster labels, and the five gate fields. Operational-meaning prose remains intentionally flexible and is not pinned by exact string equality.",
   "gate_fields": ["CLAIM", "FAILURE", "EVIDENCE", "TEST", "REVERSAL"],
   "panels": [
     {
