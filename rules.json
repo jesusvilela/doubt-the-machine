@@ -1,51 +1,294 @@
 {
-  "version": 2,
-  "scope": "Canonical rule identity only: panel headings, README rule titles, poster labels, and the five gate fields. Operational-meaning prose remains intentionally flexible and is not pinned by exact string equality.",
+  "version": 3,
+  "scope": "Canonical rule identity plus low-resolution operational-meaning direction: panel headings, README rule titles, poster labels, the five gate fields, required concept groups, and explicit inversion guards. Operational prose may be paraphrased; this contract does not claim general semantic equivalence or natural-language entailment.",
   "gate_fields": ["CLAIM", "FAILURE", "EVIDENCE", "TEST", "REVERSAL"],
   "panels": [
     {
       "heading": "## 1 — Doubt the machine",
       "poster_heading": "Doubt the machine",
       "rules": [
-        {"readme": "Don’t trust the praise", "poster": "Don’t trust the praise"},
-        {"readme": "Don’t trust the criticism either", "poster": "Don’t trust criticism either"},
-        {"readme": "Sounding right is not being right", "poster": "Sounding right ≠ being right"},
-        {"readme": "Ask how it could be wrong", "poster": "Ask how it could be wrong"},
-        {"readme": "Make it prove it", "poster": "Make it prove it"},
-        {"readme": "Ask again in fresh context", "poster": "Re-sample; don’t call it independent"},
-        {"readme": "Check outside the AI", "poster": "Check outside the AI"},
-        {"readme": "Notice what it leaves out", "poster": "Notice what it leaves out"},
-        {"readme": "Test framing invariance", "poster": "Test framing invariance"}
+        {
+          "readme": "Don’t trust the praise",
+          "poster": "Don’t trust the praise",
+          "meaning_contract": {
+            "required_concepts": [["approval", "praise"], ["not", "cannot"], ["true", "truth"]],
+            "forbidden_phrases": ["approval makes a claim true", "praise proves a claim true"],
+            "paraphrase_example": "Praise is a social signal; it cannot establish truth.",
+            "inversion_example": "Approval makes a claim true."
+          }
+        },
+        {
+          "readme": "Don’t trust the criticism either",
+          "poster": "Don’t trust criticism either",
+          "meaning_contract": {
+            "required_concepts": [["criticism", "critique"], ["counterargument", "challenge", "push back"]],
+            "forbidden_phrases": ["criticism should be accepted without challenge", "criticism is proof"],
+            "paraphrase_example": "Challenge critique; useful criticism should withstand a counterargument.",
+            "inversion_example": "Criticism should be accepted without challenge."
+          }
+        },
+        {
+          "readme": "Sounding right is not being right",
+          "poster": "Sounding right ≠ being right",
+          "meaning_contract": {
+            "required_concepts": [["fluency", "fluent", "sounding right"], ["verification", "evidence", "truth"], ["not", "isn't", "does not"]],
+            "forbidden_phrases": ["fluency is verification", "sounding right proves the claim"],
+            "paraphrase_example": "Fluent presentation is not evidence that a claim is true.",
+            "inversion_example": "Fluency is verification."
+          }
+        },
+        {
+          "readme": "Ask how it could be wrong",
+          "poster": "Ask how it could be wrong",
+          "meaning_contract": {
+            "required_concepts": [["failure", "counterexample"], ["assumption", "counterexample"], ["ask", "request"]],
+            "forbidden_phrases": ["avoid failure modes", "avoid counterexamples"],
+            "paraphrase_example": "Ask for assumptions and counterexamples that could break the claim.",
+            "inversion_example": "Avoid failure modes and counterexamples."
+          }
+        },
+        {
+          "readme": "Make it prove it",
+          "poster": "Make it prove it",
+          "meaning_contract": {
+            "required_concepts": [["source", "derivation", "test", "falsifier"], ["ask", "request", "require"]],
+            "forbidden_phrases": ["accept the claim without", "no evidence is needed"],
+            "paraphrase_example": "Require a source, test, derivation, or falsifier.",
+            "inversion_example": "Accept the claim without a source, derivation, test, or falsifier."
+          }
+        },
+        {
+          "readme": "Ask again in fresh context",
+          "poster": "Re-sample; don’t call it independent",
+          "meaning_contract": {
+            "required_concepts": [["anchoring", "anchor"], ["sample", "fresh context", "resample", "re-sample"], ["not guaranteed independence", "not independent", "independence"]],
+            "forbidden_phrases": ["fresh context is independent confirmation", "another sample is guaranteed independent"],
+            "paraphrase_example": "Use fresh context to expose anchoring; another sample is not independent confirmation.",
+            "inversion_example": "Fresh context is independent confirmation."
+          }
+        },
+        {
+          "readme": "Check outside the AI",
+          "poster": "Check outside the AI",
+          "meaning_contract": {
+            "required_concepts": [["primary source", "tests", "benchmarks", "data", "expertise"], ["use", "check", "verify"]],
+            "forbidden_phrases": ["rely on the ai alone", "rely on the model alone"],
+            "paraphrase_example": "Check primary sources, tests, data, benchmarks, or relevant expertise outside the model.",
+            "inversion_example": "Rely on the AI alone."
+          }
+        },
+        {
+          "readme": "Notice what it leaves out",
+          "poster": "Notice what it leaves out",
+          "meaning_contract": {
+            "required_concepts": [["missing", "omission", "omitted"], ["alternatives", "qualifiers", "conditions"]],
+            "forbidden_phrases": ["ignore missing alternatives", "omissions do not matter"],
+            "paraphrase_example": "Look for omitted alternatives and missing qualifiers before trusting polished prose.",
+            "inversion_example": "Ignore missing alternatives and qualifiers."
+          }
+        },
+        {
+          "readme": "Test framing invariance",
+          "poster": "Test framing invariance",
+          "meaning_contract": {
+            "required_concepts": [["supportive"], ["opposing"], ["neutral"], ["disagreement", "difference"], ["not evidence", "does not prove", "isn't evidence"]],
+            "forbidden_phrases": ["disagreement is evidence", "disagreement proves correctness"],
+            "paraphrase_example": "Compare supportive, opposing, and neutral framings; disagreement does not prove correctness.",
+            "inversion_example": "Supportive, opposing, and neutral framings differ, so disagreement is evidence."
+          }
+        }
       ]
     },
     {
       "heading": "## 2 — Doubt the bits",
       "poster_heading": "Doubt the bits",
       "rules": [
-        {"readme": "Treat output as a proposal, not proof", "poster": "Treat output as proposal, not proof"},
-        {"readme": "Fluent does not mean true", "poster": "Fluent ≠ true"},
-        {"readme": "Generated detail needs provenance", "poster": "Generated detail needs provenance"},
-        {"readme": "Every rewrite can lose something", "poster": "Every rewrite can lose something"},
-        {"readme": "Long chats get noisy", "poster": "Long chats get noisy"},
-        {"readme": "Repeat what matters", "poster": "Repeat what matters"},
-        {"readme": "One answer is one sample", "poster": "One answer is one sample"},
-        {"readme": "Confident tone is not accuracy", "poster": "Confidence ≠ accuracy"},
-        {"readme": "“Best” needs a baseline", "poster": "“Best” needs a baseline"}
+        {
+          "readme": "Treat output as a proposal, not proof",
+          "poster": "Treat output as proposal, not proof",
+          "meaning_contract": {
+            "required_concepts": [["generated", "output", "text"], ["certify", "proof", "prove"], ["not", "cannot", "does not"]],
+            "forbidden_phrases": ["generated text certifies itself", "output proves itself"],
+            "paraphrase_example": "Generated output cannot prove or certify itself.",
+            "inversion_example": "Generated text certifies itself."
+          }
+        },
+        {
+          "readme": "Fluent does not mean true",
+          "poster": "Fluent ≠ true",
+          "meaning_contract": {
+            "required_concepts": [["readability", "readable", "fluency"], ["trust"], ["accuracy"], ["without", "not", "does not"]],
+            "forbidden_phrases": ["readability increases accuracy", "readable prose proves accuracy"],
+            "paraphrase_example": "Readable prose can raise trust without raising accuracy.",
+            "inversion_example": "Readability increases accuracy."
+          }
+        },
+        {
+          "readme": "Generated detail needs provenance",
+          "poster": "Generated detail needs provenance",
+          "meaning_contract": {
+            "required_concepts": [["unsupported", "specifics", "detail"], ["evidence", "provenance", "source"], ["need", "requires", "require"]],
+            "forbidden_phrases": ["unsupported specifics need no evidence", "unsupported details require no evidence"],
+            "paraphrase_example": "Unsupported generated details require provenance or evidence.",
+            "inversion_example": "Unsupported specifics need no evidence."
+          }
+        },
+        {
+          "readme": "Every rewrite can lose something",
+          "poster": "Every rewrite can lose something",
+          "meaning_contract": {
+            "required_concepts": [["check", "inspect"], ["conditions", "exceptions", "uncertainty"], ["dropped", "lost", "missing"]],
+            "forbidden_phrases": ["ignore dropped conditions", "ignore lost conditions"],
+            "paraphrase_example": "Inspect lost conditions, exceptions, and uncertainty after a rewrite.",
+            "inversion_example": "Ignore dropped conditions, exceptions, and uncertainty."
+          }
+        },
+        {
+          "readme": "Long chats get noisy",
+          "poster": "Long chats get noisy",
+          "meaning_contract": {
+            "required_concepts": [["assumptions", "errors"], ["bias", "propagate", "carry"], ["later", "subsequent"], ["re-state", "restate", "repeat"]],
+            "forbidden_phrases": ["old assumptions cannot bias later answers", "errors cannot affect later answers"],
+            "paraphrase_example": "Earlier assumptions and errors can carry into later answers; restate the task when needed.",
+            "inversion_example": "Old assumptions cannot bias later answers; there is no need to restate the task."
+          }
+        },
+        {
+          "readme": "Repeat what matters",
+          "poster": "Repeat what matters",
+          "meaning_contract": {
+            "required_concepts": [["restate", "repeat"], ["constraints", "invariants", "definitions"]],
+            "forbidden_phrases": ["do not restate critical constraints", "constraints need not be repeated"],
+            "paraphrase_example": "Repeat critical constraints, invariants, and definitions when they matter.",
+            "inversion_example": "Do not restate critical constraints, invariants, or definitions."
+          }
+        },
+        {
+          "readme": "One answer is one sample",
+          "poster": "One answer is one sample",
+          "meaning_contract": {
+            "required_concepts": [["re-sample", "resample", "sample"], ["variance", "variation"], ["compare"], ["methods", "wording"]],
+            "forbidden_phrases": ["one sample is always enough", "do not resample"],
+            "paraphrase_example": "Resample when variation matters and compare methods, not just wording.",
+            "inversion_example": "One sample is always enough; do not resample or compare methods."
+          }
+        },
+        {
+          "readme": "Confident tone is not accuracy",
+          "poster": "Confidence ≠ accuracy",
+          "meaning_contract": {
+            "required_concepts": [["style", "tone"], ["evidence", "accuracy"], ["separate", "distinguish"]],
+            "forbidden_phrases": ["style is evidence", "tone proves accuracy"],
+            "paraphrase_example": "Distinguish confident tone and style from evidence about accuracy.",
+            "inversion_example": "Style is evidence and tone proves accuracy."
+          }
+        },
+        {
+          "readme": "“Best” needs a baseline",
+          "poster": "“Best” needs a baseline",
+          "meaning_contract": {
+            "required_concepts": [["superlative", "best"], ["comparator", "baseline"], ["metric"], ["data", "conditions"]],
+            "forbidden_phrases": ["best needs no baseline", "superlative needs no comparator"],
+            "paraphrase_example": "A best claim needs a baseline or comparator, a metric, data, and conditions.",
+            "inversion_example": "Best needs no baseline, comparator, metric, data, or conditions."
+          }
+        }
       ]
     },
     {
       "heading": "## 3 — Doubt the build",
       "poster_heading": "Doubt the build",
       "rules": [
-        {"readme": "“The AI says it works” means nothing", "poster": "“AI says it works” means nothing"},
-        {"readme": "No unverified behavior, no merge", "poster": "No unverified behavior, no merge"},
-        {"readme": "Own every changed behavior", "poster": "Own every changed behavior"},
-        {"readme": "Make retries safe", "poster": "Make retries safe"},
-        {"readme": "Add logs, not only features", "poster": "Add logs, not only features"},
-        {"readme": "Ask it to delete, not just add", "poster": "Ask it to delete, not just add"},
-        {"readme": "Prefer inspectable dependencies", "poster": "Prefer inspectable dependencies"},
-        {"readme": "Assume partial failure", "poster": "Assume partial failure"},
-        {"readme": "Small changes, easy rollback", "poster": "Small changes, easy rollback"}
+        {
+          "readme": "“The AI says it works” means nothing",
+          "poster": "“AI says it works” means nothing",
+          "meaning_contract": {
+            "required_concepts": [["run", "execute"], ["environment", "reproduction"]],
+            "forbidden_phrases": ["do not run it", "explanation is enough"],
+            "paraphrase_example": "Execute it in the real environment or a faithful reproduction.",
+            "inversion_example": "The explanation is enough; do not run it."
+          }
+        },
+        {
+          "readme": "No unverified behavior, no merge",
+          "poster": "No unverified behavior, no merge",
+          "meaning_contract": {
+            "required_concepts": [["evidence"], ["claim"], ["tests", "inspection", "derivation", "provenance"]],
+            "forbidden_phrases": ["merge behavior without evidence", "unverified behavior is fine"],
+            "paraphrase_example": "Match evidence to the claim: test runtime behavior and inspect or derive non-runtime changes.",
+            "inversion_example": "Merge behavior without evidence; the claim does not need tests or inspection."
+          }
+        },
+        {
+          "readme": "Own every changed behavior",
+          "poster": "Own every changed behavior",
+          "meaning_contract": {
+            "required_concepts": [["verify", "check"], ["invariants"], ["risk"], ["sample", "review"]],
+            "forbidden_phrases": ["skip invariants", "ignore risk-bearing paths"],
+            "paraphrase_example": "Verify invariants and risky paths, then sample low-risk surfaces when exhaustive review does not scale.",
+            "inversion_example": "Skip invariants and ignore risk-bearing paths; generated changes need no review."
+          }
+        },
+        {
+          "readme": "Make retries safe",
+          "poster": "Make retries safe",
+          "meaning_contract": {
+            "required_concepts": [["idempotency", "idempotent"], ["state"], ["retries"], ["recovery"]],
+            "forbidden_phrases": ["unbounded retries", "implicit state"],
+            "paraphrase_example": "Prefer idempotent operations, explicit state, bounded retries, and recovery.",
+            "inversion_example": "Prefer unbounded retries, implicit state, and no recovery."
+          }
+        },
+        {
+          "readme": "Add logs, not only features",
+          "poster": "Add logs, not only features",
+          "meaning_contract": {
+            "required_concepts": [["instrument", "logs", "logging", "observe"], ["failure"], ["visible", "observe", "reality"]],
+            "forbidden_phrases": ["hide failures", "failure should be invisible"],
+            "paraphrase_example": "Instrument and log failure so reality is observable when it disagrees.",
+            "inversion_example": "Hide failures so reality cannot disagree visibly."
+          }
+        },
+        {
+          "readme": "Ask it to delete, not just add",
+          "poster": "Ask it to delete, not just add",
+          "meaning_contract": {
+            "required_concepts": [["remove", "delete"], ["dead", "duplicate", "speculative"], ["paths", "abstractions", "complexity"]],
+            "forbidden_phrases": ["keep dead paths", "add speculative complexity"],
+            "paraphrase_example": "Delete dead paths, duplicate abstractions, and speculative complexity.",
+            "inversion_example": "Keep dead paths and add speculative complexity."
+          }
+        },
+        {
+          "readme": "Prefer inspectable dependencies",
+          "poster": "Prefer inspectable dependencies",
+          "meaning_contract": {
+            "required_concepts": [["documented", "familiar", "inspectable"], ["verify", "checking"], ["novelty", "new"]],
+            "forbidden_phrases": ["novelty needs less checking", "new dependencies need no extra checking"],
+            "paraphrase_example": "Prefer familiar, documented dependencies because they are easier to verify; novelty needs more checking.",
+            "inversion_example": "Novelty needs less checking than familiar, documented tools."
+          }
+        },
+        {
+          "readme": "Assume partial failure",
+          "poster": "Assume partial failure",
+          "meaning_contract": {
+            "required_concepts": [["fail"], ["network", "storage", "permissions", "data", "dependencies", "users"], ["independently", "partial", "separately"]],
+            "forbidden_phrases": ["all components fail together", "failures are all-or-nothing"],
+            "paraphrase_example": "Assume partial failure: network, storage, permissions, data, dependencies, and users can fail separately.",
+            "inversion_example": "All components fail together or not at all."
+          }
+        },
+        {
+          "readme": "Small changes, easy rollback",
+          "poster": "Small changes, easy rollback",
+          "meaning_contract": {
+            "required_concepts": [["blast radius", "scope"], ["low", "small"], ["reversal", "rollback"], ["cheap", "easy"]],
+            "forbidden_phrases": ["maximize blast radius", "rollback expensive"],
+            "paraphrase_example": "Keep scope and blast radius small so rollback stays easy.",
+            "inversion_example": "Maximize blast radius and make rollback expensive."
+          }
+        }
       ]
     }
   ]
