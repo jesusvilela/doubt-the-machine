@@ -8,6 +8,8 @@ from pydantic import ValidationError
 
 from api.gengatewai.contracts import FRAMEWORK_SLUG, GATE_FIELDS
 from api.gengatewai.models import (
+    MAX_VALIDATION_ERRORS,
+    MAX_VALIDATION_ERRORS_PER_ROW,
     GateEvaluationRequest,
     GateEvaluationResponse,
     ReviewRecord,
@@ -86,16 +88,29 @@ def evaluate_gate(request: GateEvaluationRequest) -> GateEvaluationResponse:
 def validate_record_payloads(request: ReviewRecordsValidationRequest) -> ReviewRecordsValidationResponse:
     errors: list[ReviewRecordValidationError] = []
     accepted_rows = 0
+    error_count = 0
 
     for row_index, record in enumerate(request.records, start=1):
         try:
             ReviewRecord.model_validate(record)
         except ValidationError as exc:
-            for error in exc.errors():
+            row_errors = exc.errors()
+            error_count += len(row_errors)
+            if len(errors) >= MAX_VALIDATION_ERRORS:
+                continue
+            for error in row_errors[:MAX_VALIDATION_ERRORS_PER_ROW]:
+                if len(errors) >= MAX_VALIDATION_ERRORS:
+                    break
                 location = ".".join(str(part) for part in error["loc"])
                 message = f"{location}: {error['msg']}" if location else str(error["msg"])
                 errors.append(ReviewRecordValidationError(row_index=row_index, message=message))
         else:
             accepted_rows += 1
 
-    return ReviewRecordsValidationResponse(valid=not errors, accepted_rows=accepted_rows, errors=errors)
+    return ReviewRecordsValidationResponse(
+        valid=error_count == 0,
+        accepted_rows=accepted_rows,
+        error_count=error_count,
+        errors_truncated=error_count > len(errors),
+        errors=errors,
+    )
