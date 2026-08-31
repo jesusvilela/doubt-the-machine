@@ -60,7 +60,23 @@ When local models are enabled, `GET /v1/models` also lists abstract ids such as:
 
 Calling `POST /v1/chat/completions` with one of those ids forwards the request to the local provider, prepends the Doubt runner system instruction, disables streaming, and appends a deterministic note that the local output is not a truth verdict.
 
-Experiment 001 is exposed as a two-ended human/AI matrix, using `origin→reviewer` labels:
+## Experiment 001 effective contract
+
+`GET /v1/experiments/001-seeded-errors` returns the **effective** Experiment 001 contract. The historical `preregistration.json` is preserved byte-for-byte and its Git blob is pinned by `amendment-2026-08-31-pilot.json`; the API overlays that prospective amendment rather than rewriting history.
+
+The effective design role is `pilot`. The endpoint therefore exposes:
+
+- `design_role.name = "pilot"`;
+- `confirmatory_effectiveness_decision_allowed = false`;
+- `powered_replication_required = true`;
+- no invented pre-data baseline escape probability or reviewer ICC;
+- the original 10-point effect region as `descriptive_reference_only`;
+- an `H` effectiveness status after the pilot; and
+- a promotion rule that forbids calling the gate effective, safer, better, or confirmatorily successful from Experiment 001 alone.
+
+Experiment 001 remains the same fixed randomized three-arm, two-origin protocol. Its job is now to estimate the realized important-defect denominator, baseline arm/family/origin rates, reviewer/matched-task dependence, false alarms, review cost, and seed-realism retention needed for a **separately preregistered powered replication**.
+
+The two-ended human/AI matrix still uses `origin→reviewer` labels:
 
 | Artifact origin | Reviewer side | Cell |
 | --- | --- | --- |

@@ -10,10 +10,12 @@ The claims below are deliberately narrower than “skepticism is good.” They c
 
 **Current evidence status:** hypothesis. The repository does not yet contain a completed controlled experiment establishing this claim.
 
+**Experiment 001 is now a design pilot, not the confirmatory falsifier of this H-level claim.** Its prospective amendment preserves the randomized three-arm protocol but uses the fixed run to estimate the important-defect denominator, baseline rates, dependence, false alarms, and cost needed to preregister a powered replication. Exploratory pilot outcomes must be reported but cannot by themselves promote or kill the effectiveness claim.
+
 ## Observations that would weaken or kill the claim
 
 1. **No detection benefit**  
-   Across preregistered matched tasks, the gated condition catches no more seeded important defects than ordinary review within uncertainty.
+   Across a preregistered confirmatory set with adequate design precision, the gated condition catches no more seeded important defects than ordinary review within uncertainty.
 
 2. **Operational cost overwhelms the gain**  
    The gate catches more important defects, but only with a review-time increase or external-check burden large enough that the bounded result should be reported as operationally unattractive for that task class rather than promoted. Because no scalar utility function is preregistered, cost remains a separate Pareto coordinate, not a post-hoc exchange rate.
@@ -47,5 +49,7 @@ Do not call this framework “effective”, “safer”, or “better” in gene
 3. uncertainty for the primary effect;
 4. at least one held-out or independently constructed task set;
 5. replication by a person, model, or implementation that did not author the original benchmark.
+
+Experiment 001 supplies planning evidence for that path; it is not a substitute for the powered preregistration or independent witness.
 
 Until then, the strongest honest description is: **a falsifiable verification and reversibility discipline under active self-test**.

@@ -48,14 +48,25 @@ A non-loopback host is rejected by design.
 - `get_doubt_the_machine_contract` — returns Rule 0, scope, gate fields, surfaces, evidence levels, dev loop, verification effort knobs, endpoint values, endpoint matrix, and conditions.
 - `evaluate_doubt_gate` — returns verification effort, missing gate fields, warnings, and next required action for one claim/change. It never returns an acceptance or truth verdict.
 - `validate_experiment_001_records` — validates Experiment 001 records without storing them.
-- `get_experiment_001_contract` — returns the preregistered Experiment 001 design and sample plan.
+- `get_experiment_001_contract` — returns the **effective Experiment 001 pilot contract**: the historical preregistration plus its prospective pilot amendment.
 
 ## Resources
 
 - `gengatewai://doubt-the-machine/contract`
 - `gengatewai://experiments/001-seeded-errors`
 
-Both resources return JSON. The Experiment 001 resource preserves the two-ended endpoint matrix:
+Both resources return JSON. The Experiment 001 tool and resource expose the same effective contract. The original `preregistration.json` remains byte-for-byte preserved and is pinned by the amendment; the server overlays `amendment-2026-08-31-pilot.json` and fails closed if the historical preregistration blob no longer matches.
+
+The effective Experiment 001 contract says:
+
+- design role: `pilot`;
+- confirmatory effectiveness decision: **not allowed**;
+- powered replication: **required** before an effectiveness decision;
+- pre-data baseline escape probability and reviewer ICC: **unknown, not invented**;
+- original effect region: **descriptive planning reference only**;
+- effectiveness claim after pilot: remains `H`.
+
+The two-ended endpoint matrix is unchanged:
 
 | Artifact origin | Reviewer side | Cell |
 | --- | --- | --- |
@@ -63,6 +74,8 @@ Both resources return JSON. The Experiment 001 resource preserves the two-ended 
 | `human` | `agent` | `human→agent` |
 | `agent` | `human` | `agent→human` |
 | `agent` | `agent` | `agent→agent` |
+
+A single reviewer cohort covers the two cells for that reviewer side. Running both human and agent reviewer cohorts covers the full four-cell matrix.
 
 ## Client configuration sketch
 
@@ -99,4 +112,4 @@ For a host that expects a JSON-style command sketch, use:
 }
 ```
 
-Run it from the repository root so the server can read `experiments/001-seeded-errors/preregistration.json`.
+Run it from the repository root so the server can read the Experiment 001 historical preregistration and its prospective pilot amendment.
