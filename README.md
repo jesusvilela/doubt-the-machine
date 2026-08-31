@@ -137,11 +137,11 @@ Rule 0 now has visible artifacts rather than only a slogan:
 - [FALSIFIERS.md](FALSIFIERS.md) states what would weaken or kill the framework’s claims.
 - [GRAVEYARD.md](GRAVEYARD.md) preserves rules and formulations that were retired.
 - [EVIDENCE.md](EVIDENCE.md) maps important rules to prior work and external evidence.
-- [Experiment 001](experiments/001-seeded-errors/README.md) preregisters the first controlled self-test.
+- [Experiment 001](experiments/001-seeded-errors/README.md) is the first randomized design pilot; its original preregistration is preserved and a prospective amendment forbids effectiveness promotion until a separately powered replication.
 - [API.md](API.md) exposes the gate as the deterministic GenGatewAI API, including an OpenAI-compatible runner and opt-in local LM Studio/Ollama autodetect.
 - [MCP.md](MCP.md) exposes the same contract as an MCP server for tool-capable AI hosts.
 
-**Current status:** the framework’s net effectiveness is still a **hypothesis**, not a measured result. Experiment 001 is designed to change that status or kill the claim.
+**Current status:** the framework’s net effectiveness is still a **hypothesis**, not a measured result. Experiment 001 now estimates the missing denominator, baseline, dependence, false-alarm, and cost quantities needed to preregister a powered confirmatory replication; it cannot itself promote or kill the effectiveness claim.
 
 ## Development cadence
 

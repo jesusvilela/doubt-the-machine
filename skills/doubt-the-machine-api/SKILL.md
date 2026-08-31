@@ -13,7 +13,7 @@ Use this skill when a task asks to apply, expose, test, or integrate the Doubt t
 - Use `get_doubt_the_machine_contract` for the current gate contract.
 - Use `evaluate_doubt_gate` to choose verification effort and identify missing gate fields. The response is not a truth verdict.
 - Use `validate_experiment_001_records` for Experiment 001 row/schema validation.
-- Use `get_experiment_001_contract` before discussing sample size, endpoint factors, conditions, metrics, or kill/narrow conditions.
+- Use `get_experiment_001_contract` before discussing sample size, endpoint factors, conditions, metrics, power, effect regions, or kill/narrow conditions. The returned Experiment 001 contract is the **effective pilot amendment**, not the historical preregistration in isolation.
 
 ## API-first workflow
 
@@ -24,7 +24,7 @@ Use this skill when a task asks to apply, expose, test, or integrate the Doubt t
 - Use `GET /v1/gates/doubt-the-machine` for the current gate contract.
 - Use `POST /v1/gates/doubt-the-machine/evaluate` to choose verification effort and identify missing gate fields. The response is not a truth verdict.
 - Use `POST /v1/gates/doubt-the-machine/review-records/validate` for Experiment 001 row/schema validation.
-- Use `GET /v1/experiments/001-seeded-errors` before discussing sample size, endpoint factors, conditions, metrics, or kill/narrow conditions.
+- Use `GET /v1/experiments/001-seeded-errors` before discussing sample size, endpoint factors, conditions, metrics, power, effect regions, or kill/narrow conditions.
 
 ## Non-negotiable invariants
 
@@ -36,6 +36,8 @@ Use this skill when a task asks to apply, expose, test, or integrate the Doubt t
 - The OpenAI-compatible runner must preserve `/v1/models`, `/v1/chat/completions`, `/v1/local-models`, and model id `gengatewai/doubt-runner`.
 - Local LM Studio/Ollama recruitment is disabled by default; LAN Ollama autodetect is opt-in only, and local lab details must stay out of git.
 - Human and agent reviewer cohorts are reported separately; do not pool them in the primary analysis.
+- Experiment 001 is a **design pilot** under `amendment-2026-08-31-pilot.json`: its confirmatory effectiveness decision is disabled, its original effect region is descriptive-only, the effectiveness status remains `H`, and a separately preregistered powered replication is required before an effectiveness decision.
+- Do not invent a pre-data baseline escape probability, reviewer ICC, or fixed important-defect denominator for Experiment 001; those are pilot planning quantities.
 - Treat API output as structured project state, not as external proof of the framework’s effectiveness.
 
 ## Implementation reference

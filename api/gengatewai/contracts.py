@@ -147,7 +147,7 @@ def framework_contract() -> dict[str, Any]:
 
 def experiment_summary(preregistration: dict[str, Any]) -> dict[str, Any]:
     gate = preregistration["preregistration"]
-    return {
+    summary = {
         "task_id": preregistration["task_id"],
         "status": preregistration["claim"]["status_before"],
         "claim": preregistration["claim"],
@@ -163,5 +163,15 @@ def experiment_summary(preregistration: dict[str, Any]) -> dict[str, Any]:
         "kill_condition": gate["kill_condition"],
         "stop_condition": gate["stop_condition"],
         "promotion_rule": gate["promotion_rule"],
+        "effect_region": preregistration.get("effect_region", {}),
         "does_not_establish_general_effectiveness": True,
     }
+    if "design_role" in preregistration:
+        summary["design_role"] = preregistration["design_role"]
+    if "power" in preregistration:
+        summary["power"] = preregistration["power"]
+    if "amendment" in preregistration:
+        summary["amendment"] = preregistration["amendment"]
+    if "result" in preregistration:
+        summary["result"] = preregistration["result"]
+    return summary

@@ -9,7 +9,26 @@
 - `GET /v1/gates/doubt-the-machine` returns Rule 0, scope, gate fields, surfaces, evidence levels, dev loop, verification effort knobs, endpoint values, and conditions.
 - `POST /v1/gates/doubt-the-machine/evaluate` accepts a claim, endpoint fields, risk inputs, and optional gate answers. It returns verification effort, missing gate fields, warnings, and next action.
 - `POST /v1/gates/doubt-the-machine/review-records/validate` validates Experiment 001 review records without storing them.
-- `GET /v1/experiments/001-seeded-errors` returns the preregistered Experiment 001 design and sample plan.
+- `GET /v1/experiments/001-seeded-errors` returns the effective Experiment 001 **pilot** design: the preserved historical preregistration plus its prospective amendment.
+
+## Experiment 001 amendment contract
+
+The original `experiments/001-seeded-errors/preregistration.json` is correction history and must remain byte-for-byte equal to the Git blob pinned by `amendment-2026-08-31-pilot.json`. The API/MCP runtime overlays the amendment rather than rewriting the original and must fail closed if the pinned base blob drifts.
+
+The effective contract must preserve all of these:
+
+- `design_role.name == "pilot"`;
+- `confirmatory_effectiveness_decision_allowed == false`;
+- `powered_replication_required == true`;
+- no invented pre-data baseline escape probability;
+- no invented pre-data reviewer ICC;
+- the important-defect denominator is recorded as not fixed before the pilot;
+- small-cluster inference from the pilot is not treated as confirmatory;
+- the original effect region is `descriptive_reference_only`;
+- effectiveness status after the pilot remains `H`;
+- any effectiveness decision requires a separately preregistered powered replication.
+
+Experiment 001 can report frozen pilot-design measurements and exploratory contrasts. It cannot promote the gate as effective, safer, better, or as having confirmatorily crossed the original 10-point effect region.
 
 ## MCP tools and resources
 
@@ -82,6 +101,8 @@ The repo checker must pin:
 - endpoint values;
 - condition values;
 - Experiment 001 sample constants;
+- the historical preregistration Git blob under the pilot amendment;
+- the pilot-only effectiveness/power boundary;
 - result CSV header;
-- MCP tool names and resource URIs.
+- MCP tool names and resource URIs;
 - OpenAI-compatible runner endpoint names, model id, local provider names, and local discovery modes.

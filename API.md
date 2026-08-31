@@ -1,6 +1,6 @@
 # GenGatewAI API
 
-GenGatewAI exposes Doubt the Machine as a deterministic cloud API. It recommends verification effort, reports missing gate fields, and validates Experiment 001 records. It does **not** decide whether a claim is true.
+GenGatewAI exposes Doubt the Machine as a deterministic cloud API. It recommends verification effort, reports missing gate fields, distinguishes **form completion from substantive verification**, emits bounded ceremony heuristics, and validates Experiment 001 records. It does **not** decide whether a claim is true.
 
 ## Local run
 
@@ -20,6 +20,18 @@ Then open:
 - `POST /v1/gates/doubt-the-machine/evaluate`
 - `POST /v1/gates/doubt-the-machine/review-records/validate`
 - `GET /v1/experiments/001-seeded-errors`
+
+## Gate evaluation boundary
+
+`POST /v1/gates/doubt-the-machine/evaluate` preserves the original action vocabulary for compatibility, but now makes a critical distinction explicit:
+
+- `gate_form_complete` says only whether all five fields contain non-empty text;
+- `gate_substance_assessed` is always `false` because this service does not establish whether the evidence, test, failure model, or rollback is substantively adequate;
+- `ceremony_warnings` contains cheap warning heuristics for obvious placeholders, extremely short fields, claim-as-evidence repetition, or evidence with no obvious source/artifact/command/path/run/numeric marker;
+- those heuristics are warnings only and never acceptance, truth, quality, or safety verdicts;
+- `missing_gate_fields` and `next_required_action` remain for compatibility.
+
+A response can therefore legitimately contain `gate_form_complete: true` and `gate_substance_assessed: false`. That is the intended state, not an error. Field completion is not verification.
 
 ## OpenAI-compatible runner
 
@@ -60,7 +72,23 @@ When local models are enabled, `GET /v1/models` also lists abstract ids such as:
 
 Calling `POST /v1/chat/completions` with one of those ids forwards the request to the local provider, prepends the Doubt runner system instruction, disables streaming, and appends a deterministic note that the local output is not a truth verdict.
 
-Experiment 001 is exposed as a two-ended human/AI matrix, using `origin→reviewer` labels:
+## Experiment 001 effective contract
+
+`GET /v1/experiments/001-seeded-errors` returns the **effective** Experiment 001 contract. The historical `preregistration.json` is preserved byte-for-byte and its Git blob is pinned by `amendment-2026-08-31-pilot.json`; the API overlays that prospective amendment rather than rewriting history.
+
+The effective design role is `pilot`. The endpoint therefore exposes:
+
+- `design_role.name = "pilot"`;
+- `confirmatory_effectiveness_decision_allowed = false`;
+- `powered_replication_required = true`;
+- no invented pre-data baseline escape probability or reviewer ICC;
+- the original 10-point effect region as `descriptive_reference_only`;
+- an `H` effectiveness status after the pilot; and
+- a promotion rule that forbids calling the gate effective, safer, better, or confirmatorily successful from Experiment 001 alone.
+
+Experiment 001 remains the same fixed randomized three-arm, two-origin protocol. Its job is now to estimate the realized important-defect denominator, baseline arm/family/origin rates, reviewer/matched-task dependence, false alarms, review cost, and seed-realism retention needed for a **separately preregistered powered replication**.
+
+The two-ended human/AI matrix still uses `origin→reviewer` labels:
 
 | Artifact origin | Reviewer side | Cell |
 | --- | --- | --- |
