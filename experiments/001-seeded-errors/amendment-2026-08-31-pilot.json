@@ -1,6 +1,7 @@
 {
   "amendment_id": "dtm-exp-001-amendment-2026-08-31-pilot",
   "applies_to": "dtm-exp-001-seeded-errors",
+  "base_preregistration_blob_sha": "fdba76103db657896342d1d3d24a6383d347bacd",
   "timing": {
     "date": "2026-08-31",
     "prospective": true,
