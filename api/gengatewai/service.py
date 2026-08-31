@@ -70,13 +70,12 @@ def evaluate_gate(request: GateEvaluationRequest) -> GateEvaluationResponse:
     warnings = [
         "This API does not decide whether the claim is true or acceptable.",
         "Field completion is not verification; this service does not assess gate substance and cannot detect every ceremonial gate.",
+        "Human/agent labels do not establish independent review; independence depends on evidence provenance and separation from the producing model or evidence path.",
     ]
     if missing:
         warnings.append("Gate form is incomplete; missing fields must be filled by the reviewer before substance can be assessed.")
     if ceremony:
         warnings.append("Ceremony heuristics are warnings only; they must not be treated as truth, quality, or safety verdicts.")
-    if request.artifact_origin.value == "agent" and request.reviewer_type.value == "agent":
-        warnings.append("agent→agent review still needs evidence independent of the model path.")
 
     if missing:
         next_action = "complete_gate"
