@@ -33,6 +33,8 @@ Then open:
 
 A response can therefore legitimately contain `gate_form_complete: true` and `gate_substance_assessed: false`. That is the intended state, not an error. Field completion is not verification.
 
+Human/agent endpoint labels also do **not** establish independence. A human reviewer can reuse the same model or evidence path that produced an artifact, while an agent can consult genuinely external evidence. The API therefore gives the same standing independence warning for every endpoint pairing: independence must come from evidence provenance and separation from the producing model/evidence path, not from the words `human` or `agent`.
+
 ## OpenAI-compatible runner
 
 The API exposes a minimal OpenAI Chat Completions-compatible runner so existing clients can point their base URL at GenGatewAI:
@@ -97,7 +99,7 @@ The two-ended human/AI matrix still uses `origin→reviewer` labels:
 | `agent` | `human` | `agent→human` |
 | `agent` | `agent` | `agent→agent` |
 
-A single reviewer cohort fixes the reviewer side and covers two cells. Running both human and agent reviewer cohorts covers the full four-cell matrix.
+A single reviewer cohort fixes the reviewer side and covers two cells. Running both human and agent reviewer cohorts covers the full four-cell matrix. These labels describe endpoints only; they are not evidence-source or independence labels.
 
 ## Codex skill
 
