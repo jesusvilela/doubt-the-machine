@@ -20,6 +20,9 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Check deep ACAF generator integrity
+        run: python scripts/check_acaf_generators.py --seeds 25
+
       - name: Run deep ACAF sweep
         run: python scripts/acaf_ambigator.py --seeds 25 --max-escape-rate 0.0 --max-false-alarm-rate 0.0 --json acaf.json --quiet
 
@@ -33,7 +36,7 @@ jobs:
           path = Path("acaf.json")
           print("## ACAF nightly")
           if not path.exists():
-              print("\nNo result file was produced; inspect the failed sweep step.")
+              print("\nNo result file was produced; inspect generator-integrity and sweep steps.")
           else:
               summary = json.loads(path.read_text(encoding="utf-8"))["summary"]
               print()
