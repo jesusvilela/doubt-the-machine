@@ -1,0 +1,58 @@
+{
+  "amendment_id": "dtm-exp-001-amendment-2026-08-31-pilot",
+  "applies_to": "dtm-exp-001-seeded-errors",
+  "timing": {
+    "date": "2026-08-31",
+    "prospective": true,
+    "outcomes_inspected_before_amendment": false,
+    "results_rows_at_amendment": 0
+  },
+  "design_role": {
+    "name": "pilot",
+    "purpose": "Estimate the design quantities required to preregister a genuinely powered confirmatory replication while preserving the original randomized three-arm, two-origin protocol.",
+    "reason": "The original primary estimand is per important seeded defect, but the important-defect denominator per task was not fixed and the baseline escape probability and reviewer/matched-task dependence were not empirically known. Therefore confirmatory decidability was unknown before data collection.",
+    "confirmatory_effectiveness_decision_allowed": false,
+    "powered_replication_required": true
+  },
+  "power": {
+    "confirmatory_power_claim": false,
+    "assumed_baseline_escape_probability": null,
+    "assumed_reviewer_icc": null,
+    "important_defect_denominator_fixed_before_pilot": false,
+    "small_cluster_confirmatory_inference_allowed": false,
+    "effect_region_role": "descriptive_reference_only",
+    "planning_inputs_to_estimate": [
+      "important seeded defects per task and total important-defect denominator per arm",
+      "escape probability by condition, task family, and artifact-origin side",
+      "reviewer-level and matched-task dependence diagnostics",
+      "false-alarm rate by condition",
+      "review-time and external-check distributions",
+      "seed-realism retention and strata sizes"
+    ],
+    "replication_sample_size_rule": "After the pilot is frozen and reported, compute candidate confirmatory sample sizes from the frozen planning estimates under explicitly stated assumptions, choose the estimand and inferential method, and preregister a separate replication before observing any replication outcomes."
+  },
+  "effective_preregistration": {
+    "prediction": "The original directional hypothesis is retained as an exploratory prediction: the Doubt gate may show lower important-defect escape than ordinary review and the active placebo. Experiment 001 cannot promote or kill the effectiveness claim from that direction alone.",
+    "primary_metric": "Pilot planning estimand: observed per-defect escape probability for preregistered medium/high defects, together with the realized important-defect denominator, task-level any-escape probability, false alarms, review time, and dependence diagnostics. Three-arm contrasts are exploratory planning estimates, not confirmatory effectiveness tests.",
+    "uncertainty_method": "Publish raw task rows and descriptive uncertainty for condition contrasts while preserving reviewer and matched-task identifiers. With the pilot minimum of 12 reviewer IDs, interval coverage is not treated as confirmatory; clustering/dependence estimates are planning inputs for the separately preregistered powered replication.",
+    "kill_condition": "Experiment 001 may retire or narrow the experimental design if randomization, control parity, endpoint coverage, seed realism, record integrity, or denominator/dependence estimation fails. It does not make a confirmatory promote-or-kill decision on the H-level effectiveness claim; exploratory adverse or null effects must still be reported in full.",
+    "stop_condition": "Stop the pilot at exactly 432 scorable reviews per reviewer cohort, with the existing preregistered replacement policy and no outcome-driven extension. Freeze and report the realized important-defect denominator, arm/family/origin rates, dependence diagnostics, false alarms, and review-time costs before designing any powered replication.",
+    "promotion_rule": "Experiment 001 may promote only measured pilot-design statements: realized denominators, observed arm/family/origin rates, dependence diagnostics, false-alarm and review-time distributions, and feasibility findings. It may not promote the Doubt gate as effective, safer, better, or as having passed the original 10-point effect region. Any effectiveness promotion requires a separate powered preregistration and later independent replication."
+  },
+  "effect_region": {
+    "role": "descriptive_reference_only",
+    "note": "The original 10-point escape-reduction / 10-point false-alarm thresholds are preserved in preregistration.json as correction history and a planning reference. They are not a pilot promotion gate."
+  },
+  "result_contract": {
+    "effectiveness_status_after_pilot": "H",
+    "required_outputs": [
+      "realized important-defect denominator per condition, family, and artifact-origin side",
+      "observed escape and false-alarm rates",
+      "reviewer and matched-task dependence diagnostics",
+      "review-time and external-check distributions",
+      "seed-realism strata",
+      "all exclusions and replacements"
+    ],
+    "powered_replication_preregistration_required_before_effectiveness_decision": true
+  }
+}
