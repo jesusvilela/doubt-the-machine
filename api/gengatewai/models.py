@@ -95,8 +95,12 @@ class GateEvaluationResponse(StrictModel):
     verification_effort: Literal["light", "standard", "high"]
     reasons: list[str]
     missing_gate_fields: list[str]
+    gate_form_complete: bool
+    gate_substance_assessed: Literal[False] = False
+    ceremony_warnings: list[str]
     warnings: list[str]
-    next_required_action: Literal["complete_gate", "run_required_checks", "preregister_or_independent_review"]
+    next_required_action: Literal["complete_gate_form", "assess_gate_substance"]
+    required_after_substance_assessment: Literal["run_required_checks", "preregister_or_independent_review"]
     does_not_decide_truth: Literal[True] = True
 
 
