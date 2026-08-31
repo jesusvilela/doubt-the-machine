@@ -17,7 +17,10 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from scripts.acaf_ambigator import Ambigator, ROOT
+try:  # package import under pytest / module execution
+    from scripts.acaf_ambigator import Ambigator, ROOT
+except ModuleNotFoundError:  # direct `python scripts/check_acaf_generators.py`
+    from acaf_ambigator import Ambigator, ROOT
 
 SKIP_NAMES = {".git", "__pycache__", "node_modules", ".pytest_cache"}
 
