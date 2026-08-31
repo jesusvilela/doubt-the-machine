@@ -78,8 +78,12 @@ def evaluate_gate(request: GateEvaluationRequest) -> GateEvaluationResponse:
     if request.artifact_origin.value == "agent" and request.reviewer_type.value == "agent":
         warnings.append("agent→agent review still needs evidence independent of the model path.")
 
-    next_action = "complete_gate_form" if missing else "assess_gate_substance"
-    after_substance = "preregister_or_independent_review" if effort == "high" else "run_required_checks"
+    if missing:
+        next_action = "complete_gate"
+    elif effort == "high":
+        next_action = "preregister_or_independent_review"
+    else:
+        next_action = "run_required_checks"
 
     return GateEvaluationResponse(
         framework=FRAMEWORK_SLUG,
@@ -91,7 +95,6 @@ def evaluate_gate(request: GateEvaluationRequest) -> GateEvaluationResponse:
         ceremony_warnings=ceremony,
         warnings=warnings,
         next_required_action=next_action,
-        required_after_substance_assessment=after_substance,
     )
 
 
