@@ -30,7 +30,7 @@ from api.gengatewai.models import (
 from api.gengatewai.service import evaluate_gate, normalize_gate
 
 MODEL_CREATED_AT = 1_788_048_000
-RUNNER_SYSTEM_FINGERPRINT = "fp_doubt_the_machine_deterministic_v1"
+RUNNER_SYSTEM_FINGERPRINT = "fp_doubt_the_machine_deterministic_v2_form_substance"
 
 GATE_LINE = re.compile(r"^\s*(CLAIM|FAILURE|EVIDENCE|TEST|REVERSAL)\s*[:=—-]\s*(.+?)\s*$", re.IGNORECASE)
 
@@ -175,8 +175,13 @@ def _runner_message(request: OpenAIChatCompletionRequest) -> str:
         f"Framework: {FRAMEWORK_SLUG}",
         f"Claim under review: {gate_request.claim}",
         f"Verification effort: {result.verification_effort}",
+        f"Gate form complete: {'yes' if result.gate_form_complete else 'no'}",
+        "Gate substance assessed by this runner: no",
+        "Cleared for action by this runner: no",
         f"Next required action: {result.next_required_action}",
         f"Missing gate fields: {_format_list(result.missing_gate_fields)}",
+        f"Unassessed dimensions: {_format_list(result.unassessed_dimensions)}",
+        f"Ceremony signals: {_format_list(result.ceremony_signals)}",
         "",
         "Gate record:",
     ]
@@ -192,7 +197,7 @@ def _runner_message(request: OpenAIChatCompletionRequest) -> str:
             "Warnings:",
             *(f"- {warning}" for warning in result.warnings),
             "",
-            "This OpenAI-compatible runner does not decide whether the claim is true, safe, or acceptable.",
+            "This OpenAI-compatible runner does not decide whether the claim is true, safe, or acceptable, and form completion is not clearance.",
         ]
     )
     return "\n".join(lines)
@@ -237,7 +242,8 @@ def _local_runner_note() -> str:
     return (
         "GenGatewAI runner note: local model output above is advisory. "
         "It does not decide whether the claim is true, safe, or acceptable. "
-        "Before belief, decision, execution, or persistence, complete CLAIM / FAILURE / EVIDENCE / TEST / REVERSAL."
+        "Recording CLAIM / FAILURE / EVIDENCE / TEST / REVERSAL establishes form completion only; "
+        "their substantive adequacy still requires review before action."
     )
 
 
