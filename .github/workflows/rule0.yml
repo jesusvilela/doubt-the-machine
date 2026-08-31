@@ -29,6 +29,9 @@ jobs:
       - name: Fuzz Rule 0 contract
         run: python scripts/acaf_ambigator.py --seeds 3 --max-escape-rate 0.0 --max-false-alarm-rate 0.0 --quiet
 
+      - name: Attack operational meaning direction
+        run: python scripts/acaf_meaning_matrix.py --max-inversion-escape-rate 0.0 --max-paraphrase-false-alarm-rate 0.0
+
       - name: Install API test dependencies
         run: python -m pip install -r requirements-dev.txt
 
