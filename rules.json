@@ -213,7 +213,7 @@
           "readme": "No unverified behavior, no merge",
           "poster": "No unverified behavior, no merge",
           "meaning_contract": {
-            "required_concepts": [["evidence"], ["claim"], ["tests", "inspection", "derivation", "provenance"]],
+            "required_concepts": [["evidence"], ["claim"], ["tests", "test", "inspection", "inspect", "derivation", "derive", "provenance"]],
             "forbidden_phrases": ["merge behavior without evidence", "unverified behavior is fine"],
             "paraphrase_example": "Match evidence to the claim: test runtime behavior and inspect or derive non-runtime changes.",
             "inversion_example": "Merge behavior without evidence; the claim does not need tests or inspection."
