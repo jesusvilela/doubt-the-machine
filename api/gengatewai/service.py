@@ -7,6 +7,7 @@ from typing import Any
 from pydantic import ValidationError
 
 from api.gengatewai.contracts import FRAMEWORK_SLUG, GATE_FIELDS
+from api.gengatewai.experiment_amendments import apply_experiment_001_amendment
 from api.gengatewai.models import (
     MAX_VALIDATION_ERRORS,
     MAX_VALIDATION_ERRORS_PER_ROW,
@@ -23,7 +24,8 @@ PREREGISTRATION_PATH = ROOT / "experiments" / "001-seeded-errors" / "preregistra
 
 
 def load_preregistration() -> dict[str, Any]:
-    return json.loads(PREREGISTRATION_PATH.read_text(encoding="utf-8"))
+    original = json.loads(PREREGISTRATION_PATH.read_text(encoding="utf-8"))
+    return apply_experiment_001_amendment(original)
 
 
 def normalize_gate(gate: dict[str, str | None]) -> dict[str, str]:
