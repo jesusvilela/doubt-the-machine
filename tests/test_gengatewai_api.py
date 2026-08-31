@@ -1,11 +1,18 @@
 from __future__ import annotations
 
+import json
+
 from fastapi.testclient import TestClient
 
 from api.gengatewai.app import app
 from api.gengatewai.contracts import OPENAI_COMPATIBLE_RUNNER_MODEL
 from api.gengatewai.local_models import LOCAL_MODELS_MODE_ENV
-from api.gengatewai.models import MAX_CLAIM_LENGTH, MAX_OPENAI_MESSAGES, MAX_REVIEW_RECORDS
+from api.gengatewai.models import (
+    MAX_CLAIM_LENGTH,
+    MAX_OPENAI_MESSAGES,
+    MAX_REVIEW_RECORDS,
+    MAX_VALIDATION_ERRORS,
+)
 
 client = TestClient(app)
 
@@ -231,6 +238,20 @@ def test_evaluate_light_effort_for_low_risk_complete_gate() -> None:
     assert body["next_required_action"] == "run_required_checks"
 
 
+def test_evaluate_rejects_case_variant_gate_key_collision() -> None:
+    response = client.post(
+        "/v1/gates/doubt-the-machine/evaluate",
+        json={
+            "claim": "A claim",
+            "artifact_origin": "human",
+            "reviewer_type": "human",
+            "gate": {"claim": "filled", "Claim": ""},
+        },
+    )
+    assert response.status_code == 422
+    assert "collide after case normalization" in response.text
+
+
 def test_evaluate_rejects_bad_endpoint_value() -> None:
     response = client.post(
         "/v1/gates/doubt-the-machine/evaluate",
@@ -262,7 +283,13 @@ def test_validate_review_records_accepts_valid_row() -> None:
     )
     assert response.status_code == 200
     body = response.json()
-    assert body == {"valid": True, "accepted_rows": 1, "errors": []}
+    assert body == {
+        "valid": True,
+        "accepted_rows": 1,
+        "error_count": 0,
+        "errors_truncated": False,
+        "errors": [],
+    }
 
 
 def test_validate_review_records_reports_bad_rows() -> None:
@@ -278,8 +305,26 @@ def test_validate_review_records_reports_bad_rows() -> None:
     body = response.json()
     assert body["valid"] is False
     assert body["accepted_rows"] == 0
+    assert body["error_count"] >= 2
+    assert body["errors_truncated"] is False
     assert any("condition" in error["message"] for error in body["errors"])
     assert any("important_defects_caught + important_defects_escaped" in error["message"] for error in body["errors"])
+
+
+def test_validate_review_records_caps_error_amplification() -> None:
+    payload = {"records": [{}] * MAX_REVIEW_RECORDS}
+    encoded_request = json.dumps(payload, separators=(",", ":")).encode()
+    response = client.post(
+        "/v1/gates/doubt-the-machine/review-records/validate",
+        json=payload,
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["valid"] is False
+    assert body["error_count"] > MAX_VALIDATION_ERRORS
+    assert body["errors_truncated"] is True
+    assert len(body["errors"]) == MAX_VALIDATION_ERRORS
+    assert len(response.content) < len(encoded_request) * 4
 
 
 def test_validate_review_records_rejects_oversized_batch() -> None:
