@@ -1,16 +1,31 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
+EXPERIMENT_001_PREREGISTRATION_PATH = ROOT / "experiments" / "001-seeded-errors" / "preregistration.json"
 EXPERIMENT_001_AMENDMENT_PATH = ROOT / "experiments" / "001-seeded-errors" / "amendment-2026-08-31-pilot.json"
 
 
+def _git_blob_sha(path: Path) -> str:
+    content = path.read_bytes()
+    header = f"blob {len(content)}\0".encode("ascii")
+    return hashlib.sha1(header + content).hexdigest()
+
+
 def load_experiment_001_amendment() -> dict[str, Any]:
-    return json.loads(EXPERIMENT_001_AMENDMENT_PATH.read_text(encoding="utf-8"))
+    amendment = json.loads(EXPERIMENT_001_AMENDMENT_PATH.read_text(encoding="utf-8"))
+    expected_blob = str(amendment.get("base_preregistration_blob_sha", ""))
+    actual_blob = _git_blob_sha(EXPERIMENT_001_PREREGISTRATION_PATH)
+    if not expected_blob or actual_blob != expected_blob:
+        raise ValueError(
+            "Experiment 001 historical preregistration no longer matches the blob pinned by its pilot amendment"
+        )
+    return amendment
 
 
 def apply_experiment_001_amendment(
