@@ -1,0 +1,45 @@
+name: ACAF contract fuzzing
+
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  acaf-nightly:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.12'
+
+      - name: Run deep ACAF sweep
+        run: python scripts/acaf_ambigator.py --seeds 25 --max-escape-rate 0.0 --max-false-alarm-rate 0.0 --json acaf.json --quiet
+
+      - name: Write ACAF summary
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+
+          path = Path("acaf.json")
+          print("## ACAF nightly")
+          if not path.exists():
+              print("\nNo result file was produced; inspect the failed sweep step.")
+          else:
+              summary = json.loads(path.read_text(encoding="utf-8"))["summary"]
+              print()
+              print(f"- Mutations: **{summary['total_mutations']}**")
+              print(f"- Escape rate: **{summary['escape_rate']:.3f}** ({summary['escaped']}/{summary['must_catch']})")
+              print(f"- False-alarm rate: **{summary['false_alarm_rate']:.3f}** ({summary['false_alarms']}/{summary['must_pass']})")
+              print()
+              print("These rates describe only the declared ACAF mutation span; they are not evidence that the framework is effective.")
+          PY
