@@ -22,6 +22,15 @@ from api.gengatewai.models import (
 ROOT = Path(__file__).resolve().parents[2]
 PREREGISTRATION_PATH = ROOT / "experiments" / "001-seeded-errors" / "preregistration.json"
 
+UNASSESSED_GATE_DIMENSIONS = (
+    "claim_scope_and_operational_meaning",
+    "failure_mode_relevance",
+    "evidence_quality_and_independence",
+    "test_falsifiability_and_execution",
+    "reversal_feasibility",
+)
+LOW_INFORMATION_EXACT = {".", "..", "...", "?", "none", "n/a", "na", "unknown", "tbd", "todo"}
+
 
 def load_preregistration() -> dict[str, Any]:
     original = json.loads(PREREGISTRATION_PATH.read_text(encoding="utf-8"))
@@ -30,6 +39,24 @@ def load_preregistration() -> dict[str, Any]:
 
 def normalize_gate(gate: dict[str, str | None]) -> dict[str, str]:
     return {str(key).upper(): str(value).strip() for key, value in gate.items() if value is not None}
+
+
+def _ceremony_signals(gate: dict[str, str]) -> list[str]:
+    """Flag only obvious low-information placeholders; do not score truth or adequacy."""
+    signals: list[str] = []
+    for field in GATE_FIELDS:
+        raw = gate.get(field, "").strip()
+        if not raw:
+            continue
+        normalized = " ".join(raw.lower().split()).strip(" .!?:;")
+        if (
+            raw in {".", "..", "...", "?"}
+            or normalized in LOW_INFORMATION_EXACT
+            or normalized.startswith("none,")
+            or normalized.startswith("none ")
+        ):
+            signals.append(f"{field}:low_information_placeholder")
+    return signals
 
 
 def evaluate_effort(request: GateEvaluationRequest) -> tuple[str, list[str]]:
@@ -63,25 +90,43 @@ def evaluate_gate(request: GateEvaluationRequest) -> GateEvaluationResponse:
     effort, reasons = evaluate_effort(request)
     gate = normalize_gate(request.gate)
     missing = [field for field in GATE_FIELDS if not gate.get(field)]
+    form_complete = not missing
+    ceremony_signals = _ceremony_signals(gate)
 
-    warnings = ["This API does not decide whether the claim is true or acceptable."]
+    warnings = [
+        "Gate form completeness checks only whether text is present; it does not assess substantive adequacy.",
+        "This API does not decide whether the claim is true or acceptable and does not clear it for action.",
+    ]
     if missing:
-        warnings.append("Gate record is incomplete; missing fields must be filled by the reviewer.")
-    if request.artifact_origin.value == "agent" and request.reviewer_type.value == "agent":
-        warnings.append("agent→agent review still needs evidence independent of the model path.")
+        warnings.append("Gate form is incomplete; missing fields still need reviewer input.")
+    if ceremony_signals:
+        warnings.append(
+            "Obvious low-information placeholder signals were detected; they may be ceremonial and require substance review."
+        )
+    if request.artifact_origin.value == "agent":
+        warnings.append(
+            "An agent-origin artifact still needs evidence independent of the generation path; reviewer type alone does not establish independence."
+        )
+    if request.reviewer_type.value == "agent":
+        warnings.append(
+            "An agent reviewer is not automatically an independent witness; disclose model/tool lineage when independence matters."
+        )
 
     if missing:
-        next_action = "complete_gate"
+        next_action = "complete_gate_form"
     elif effort == "high":
-        next_action = "preregister_or_independent_review"
+        next_action = "assess_gate_substance_and_preregister_or_independent_review"
     else:
-        next_action = "run_required_checks"
+        next_action = "assess_gate_substance"
 
     return GateEvaluationResponse(
         framework=FRAMEWORK_SLUG,
         verification_effort=effort,
         reasons=reasons,
         missing_gate_fields=missing,
+        gate_form_complete=form_complete,
+        unassessed_dimensions=list(UNASSESSED_GATE_DIMENSIONS),
+        ceremony_signals=ceremony_signals,
         warnings=warnings,
         next_required_action=next_action,
     )
