@@ -1,37 +1,44 @@
 # ACAF — fuzzing the Rule 0 contract
 
 Rule 0 says this framework must get harder to fool as people try to break it. That is an
-empirical claim about `scripts/check_rule0.py`, and until now nothing measured it.
+empirical claim about `scripts/check_rule0.py`, and until ACAF nothing measured it.
 
-`scripts/acaf_ambigator.py` measures it.
+`scripts/acaf_ambigator.py` measures the broad mutation span. `scripts/acaf_meaning_matrix.py`
+attacks one narrower semantic-direction gap deterministically across all 27 active rules.
 
 ## The triad, mapped onto this repository
 
 | ACAF component | Here |
 |---|---|
 | **Actor** | `scripts/check_rule0.py` — the self-audit contract that CI runs |
-| **Critic** | the labelled oracle: every mutation is declared `MUST_CATCH` or `MUST_PASS` **before** the Actor runs |
-| **Ambigator** | mutation generators spanning the repository's surface space — README rules, poster labels, retired wording, preregistration constants, API contract, results schema, required artifacts |
-| **Fuzzer** | the sweep runner: applies each mutation to a throwaway copy and records whether the Actor failed |
+| **Critic** | labelled oracles fixed before execution: base mutations are `MUST_CATCH` or `MUST_PASS`; each rule meaning declares one inversion and one paraphrase |
+| **Ambigator** | mutation generators spanning README rules, poster labels, retired wording, preregistration constants, API contract, results schema, required artifacts, plus the operational-meaning matrix |
+| **Fuzzer** | the sweep runner and meaning matrix: apply mutations to throwaway copies and record whether the Actor failed |
 
-The Critic's labels are fixed in code before execution, so a result cannot be
-rationalised afterwards. The working tree is never mutated.
+The Critic's labels are fixed before the Actor runs, so a result cannot be rationalised after
+seeing the checker outcome. The working tree is never mutated.
 
 ## What is measured
 
-Deliberately the same Pareto pair Experiment 001 uses, and for the same reason:
+The base sweep keeps the same Pareto pair as Experiment 001:
 
 ```text
 escape_rate       = MUST_CATCH mutations the checker passed   (undetected important defects)
 false_alarm_rate  = MUST_PASS  mutations the checker rejected (rejected correct work)
 ```
 
-The two are **not** collapsed into a single score. A checker with `escape_rate 0` and
-`false_alarm_rate 1` rejects everything and is useless; the reverse is the string-presence
-checker this harness was written to falsify. `summarize()` has a test asserting no scalar
-score is emitted.
+The operational-meaning matrix keeps an analogous pair without collapsing it into the base score:
 
-## Mutation families
+```text
+inversion_escape_rate         = inverted meaning cells the checker passed
+paraphrase_false_alarm_rate   = declared meaning-preserving paraphrases the checker rejected
+```
+
+None of these coordinates is collapsed into a scalar utility. A checker that rejects all prose
+could score zero inversion escapes and still be useless because its paraphrase false-alarm rate
+would be one.
+
+## Base mutation families
 
 `MUST_CATCH` — semantics-breaking, CI must reject:
 `rule_deletion`, `panel_deletion`, `rule_retitle` (semantic inversion), `poster_gutting`,
@@ -44,19 +51,47 @@ score is emitted.
 `benign_prose`, `benign_meaning_edit`, `benign_graveyard_entry`, `benign_valid_result_row`,
 `benign_evidence_source`, `benign_whitespace`, `benign_new_test`.
 
+The base Ambigator remains a 24-family span. `check_acaf_generators.py` independently verifies that
+every declared base mutation applies, changes the throwaway tree, and contributes to the expected
+denominator before the sweep is interpreted.
+
+## Operational-meaning matrix
+
+`rules.json` v3 no longer pins rule identity only. Each active rule also carries a deliberately
+**low-resolution directional contract**:
+
+- required concept groups — at least one wording variant from each group must remain present;
+- forbidden inversion phrases — explicit opposite-direction formulations that must be rejected;
+- one declared `paraphrase_example` that must pass; and
+- one declared `inversion_example` that must fail.
+
+Operational prose is still not byte-pinned. The checker normalizes wording and permits the declared
+paraphrases. The matrix then changes only the third README column while keeping panel, number, and
+rule title fixed. It executes exactly:
+
+```text
+27 inversion cases   MUST_CATCH
+27 paraphrase cases  MUST_PASS
+54 total cases
+```
+
+This closes the specific failure where a title survives while the explanation is replaced by one
+of the declared opposite-direction meanings. It does **not** implement general natural-language
+entailment, contradiction detection, or semantic equivalence.
+
 ## Running it
 
 ```bash
-python scripts/acaf_ambigator.py --seeds 3
-python scripts/acaf_ambigator.py --seeds 25 --json acaf.json
+python scripts/check_acaf_generators.py --seeds 3
 python scripts/acaf_ambigator.py --seeds 3 --max-escape-rate 0.0 --max-false-alarm-rate 0.0
+python scripts/acaf_meaning_matrix.py --max-inversion-escape-rate 0.0 --max-paraphrase-false-alarm-rate 0.0
 ```
 
-The required `self-audit-contract` runs 3 seeds/family on every PR, so an ACAF failure is
-merge-blocking under the repository ruleset. `.github/workflows/acaf.yml` runs 25 seeds/family
-nightly and writes the measured rates to the run summary.
+The required `self-audit-contract` runs all three on every PR. `.github/workflows/acaf.yml` runs the
+25-seed base sweep plus the complete 54-case meaning matrix nightly. Tagged releases rerun the same
+boundaries before publishing.
 
-## Measured result from the handoff audit
+## Measured result from the original handoff audit
 
 | Checker state | Mutations | Escape rate | False-alarm rate |
 |---|---:|---:|---:|
@@ -65,51 +100,51 @@ nightly and writes the measured rates to the run summary.
 | After hardening, 12 seeds/family | 288 | **0.000** (0/204) | 0.000 (0/84) |
 
 These measurements were produced by the co-developer's clean local harness before this work was
-pushed to GitHub. The landed harness is rerun by CI; do not substitute the table above for the
+pushed to GitHub. They describe the historical 24-family base span only; the operational-meaning
+matrix did not yet exist. The landed harness is rerun by CI, so do not substitute this table for a
 current workflow result.
 
-Escapes in the baseline were concentrated exactly where the checker tested for tokens
-rather than structure: `rule_deletion` 3/3, `rule_retitle` 3/3, `panel_deletion` 3/3,
+Escapes in that baseline were concentrated exactly where the checker tested for tokens rather than
+structure: `rule_deletion` 3/3, `rule_retitle` 3/3, `panel_deletion` 3/3,
 `poster_relabel` 3/3, `poster_gutting` 2/3, `poster_rule_drop` 2/3,
 `retired_reintroduction` 2/3, `graveyard_erasure` 1/3. Every numeric family — the
-preregistration constants, the API contract, the results schema, required artifacts —
-escaped 0/3 both before and after. The weakness was not in the arithmetic.
+preregistration constants, API contract, results schema, required artifacts — escaped 0/3 both
+before and after. The weakness was not in the arithmetic.
 
-## What this result does not establish
+## What the current checks do not establish
 
-Read this before quoting the 0.000.
+Read this before quoting any zero.
 
-1. **Correlated checking** (PRINCIPLES §11). The mutation space and the hardened checker
-   were authored in the same development loop. A fuzzer written by the same process that wrote the
-   fix will preferentially generate mutations that fix catches. `escape_rate = 0` over
-   *this* mutation space is a much weaker claim than "the checker cannot be fooled".
-2. **The span is declared, not exhaustive.** Anything outside the seventeen `MUST_CATCH`
-   families is unmeasured. Notably: the *operational meaning* column of each rule is not
-   pinned by `rules.json`, so a rule's title can survive while its explanation is
-   inverted. That is a known, deliberate gap — pinning prose would raise the false-alarm
-   rate — and it is the first place to attack this harness.
-3. **A passing sweep is not evidence the framework works.** It is evidence that the
-   repository's own contract checker rejects the contract violations it declares. That is
-   `P`-level for the inspectable checker contract and says nothing about Experiment 001's
-   `H`-level effectiveness claim.
+1. **Correlated checking** (PRINCIPLES §11). The mutation space, meaning contracts, examples, and
+   hardened checker were authored in the same development loop. A same-author zero preferentially
+   covers the mutations the author thought to declare; it is not independent replication.
+2. **The span is declared, not exhaustive.** The base sweep is 24 mutation families. The meaning
+   matrix adds 27 declared inversions and 27 declared paraphrases. An adversarial rewording outside
+   those concept groups or forbidden phrases can still escape. The checker is deliberately not a
+   natural-language inference model.
+3. **Concept anchors are lossy.** They protect coarse semantic direction while allowing prose to
+   move. That is the design trade-off: exact sentence hashes would catch every edit but turn benign
+   clarification into a false alarm. The matrix measures this declared compromise; it does not prove
+   the compromise is optimal.
+4. **A passing sweep is not evidence the framework works.** It establishes only that the repository
+   checker rejects the declared contract violations while permitting the declared controls.
+   Experiment 001's effectiveness claim remains `H` and requires separately powered evidence.
 
-The useful contribution is an adversarial generator whose mutations do not inspect the checker's
-implementation. It is still not an independent replication witness when authored in the same loop.
+The useful contribution is a progressively harder-to-game local contract with explicit negative and
+benign controls. It is still not an independent reproduction witness when authored in the same loop.
 
 ## Extending it
 
-Add a generator method to `Ambigator`, label it, and register it in `generators()`. A new
-`MUST_CATCH` family that immediately escapes is a finding, not a bug in the harness —
-report it, then decide whether to harden the checker or narrow its claim.
+For structural or numeric coverage, add a generator method to `Ambigator`, label it, and register it
+in `generators()`. For operational meaning, strengthen a rule's concept groups or add an adversarial
+phrase only when a concrete escape demonstrates the need. A new escaping case is a finding: preserve
+it before hardening the checker.
+
+Do not rescue an escaped semantic mutation by exact-string pinning unless the false-alarm trade-off
+is measured first.
 
 ## Rollback
 
-Reverting is ordered, because the release pipeline consumes the harness:
-
-```bash
-git revert <ci/cd commit>     # first: removes ACAF from required/release workflows
-git revert <tock-004 commit>  # then: removes rules.json, the harness, and hardening
-```
-
-Reverting the tock alone while workflows still call the harness leaves CI pointing at a deleted
-script. No active rule wording is restored or lost by this tock; it changes verification only.
+Revert workflow wiring before removing a checker or matrix script that CI consumes. Preserve the
+historical measurements and correction record; this tock changes verification, not active rule
+wording.

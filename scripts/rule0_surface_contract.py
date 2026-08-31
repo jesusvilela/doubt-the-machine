@@ -51,6 +51,77 @@ def _normalize_space(value: str) -> str:
     return " ".join(value.split())
 
 
+def _normalize_semantic_text(value: str) -> str:
+    """Normalize wording for low-resolution concept checks, not semantic equivalence."""
+    return _normalize_space(re.sub(r"[^\w]+", " ", value.casefold(), flags=re.UNICODE))
+
+
+def _contains_concept(text: str, concept: str) -> bool:
+    normalized_text = _normalize_semantic_text(text)
+    normalized_concept = _normalize_semantic_text(concept)
+    if not normalized_concept:
+        return False
+    if " " in normalized_concept:
+        return f" {normalized_concept} " in f" {normalized_text} "
+    tokens = set(normalized_text.split())
+    return normalized_concept in tokens or f"{normalized_concept}s" in tokens or f"{normalized_concept}es" in tokens
+
+
+def _meaning_errors(text: str, contract: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    required = contract.get("required_concepts")
+    forbidden = contract.get("forbidden_phrases")
+    if not isinstance(required, list) or not required:
+        return ["meaning_contract.required_concepts must be a non-empty list"]
+    if not isinstance(forbidden, list) or not forbidden:
+        return ["meaning_contract.forbidden_phrases must be a non-empty list"]
+
+    for group in required:
+        if not isinstance(group, list) or not group or not all(isinstance(item, str) and item.strip() for item in group):
+            errors.append("meaning_contract concept groups must contain non-empty strings")
+            continue
+        if not any(_contains_concept(text, variant) for variant in group):
+            errors.append("missing concept: " + " / ".join(group))
+
+    for phrase in forbidden:
+        if not isinstance(phrase, str) or not phrase.strip():
+            errors.append("meaning_contract forbidden phrases must be non-empty strings")
+            continue
+        if _contains_concept(text, phrase):
+            errors.append(f"forbidden inversion phrase present: {phrase}")
+    return errors
+
+
+def _validate_meaning_contract(rule: dict[str, Any], actual_meaning: str, label: str) -> None:
+    contract = rule.get("meaning_contract")
+    if not isinstance(contract, dict):
+        raise SurfaceContractError(f"{label} missing meaning_contract")
+
+    paraphrase = str(contract.get("paraphrase_example", "")).strip()
+    inversion = str(contract.get("inversion_example", "")).strip()
+    forbidden = contract.get("forbidden_phrases")
+    if not paraphrase or not inversion:
+        raise SurfaceContractError(f"{label} meaning_contract needs paraphrase_example and inversion_example")
+    if not isinstance(forbidden, list) or not any(
+        isinstance(phrase, str) and phrase.strip() and _contains_concept(inversion, phrase) for phrase in forbidden
+    ):
+        raise SurfaceContractError(f"{label} inversion_example must instantiate an explicit forbidden phrase")
+
+    paraphrase_errors = _meaning_errors(paraphrase, contract)
+    if paraphrase_errors:
+        raise SurfaceContractError(
+            f"{label} declared paraphrase does not satisfy its meaning contract: {paraphrase_errors[0]}"
+        )
+
+    inversion_errors = _meaning_errors(inversion, contract)
+    if not inversion_errors:
+        raise SurfaceContractError(f"{label} declared inversion is not rejected by its meaning contract")
+
+    actual_errors = _meaning_errors(actual_meaning, contract)
+    if actual_errors:
+        raise SurfaceContractError(f"{label} operational meaning drifted: {actual_errors[0]}")
+
+
 def _panel_section(readme: str, heading: str, next_heading: str | None) -> str:
     start = readme.find(heading)
     if start < 0:
@@ -69,6 +140,8 @@ def validate_readme_structure(root: Path = ROOT) -> None:
     readme = (root / "README.md").read_text(encoding="utf-8")
     panels = mapping.get("panels")
     gate_fields = mapping.get("gate_fields")
+    if mapping.get("version") != 3:
+        raise SurfaceContractError("rules.json version must be 3 for operational-meaning contracts")
     if not isinstance(panels, list) or len(panels) != 3:
         raise SurfaceContractError("rules.json must define exactly three panels")
     if gate_fields != ["CLAIM", "FAILURE", "EVIDENCE", "TEST", "REVERSAL"]:
@@ -85,14 +158,23 @@ def validate_readme_structure(root: Path = ROOT) -> None:
         if not isinstance(rules, list) or len(rules) != 9:
             raise SurfaceContractError(f"{headings[index]} must map exactly nine rules")
         section = _panel_section(readme, headings[index], headings[index + 1] if index < 2 else None)
-        rows = re.findall(r"^\|\s*([1-9])\s*\|\s*\*\*(.+?)\*\*\s*\|", section, flags=re.MULTILINE)
-        numbers = [int(number) for number, _ in rows]
-        titles = [title.strip() for _, title in rows]
+        rows = re.findall(
+            r"^\|\s*([1-9])\s*\|\s*\*\*(.+?)\*\*\s*\|\s*(.*?)\s*\|$",
+            section,
+            flags=re.MULTILINE,
+        )
+        numbers = [int(number) for number, _, _ in rows]
+        titles = [title.strip() for _, title, _ in rows]
+        meanings = [meaning.strip() for _, _, meaning in rows]
         expected_titles = [str(rule.get("readme", "")).strip() for rule in rules if isinstance(rule, dict)]
         if numbers != list(range(1, 10)):
             raise SurfaceContractError(f"{headings[index]} must contain numbered rule rows 1 through 9 exactly once")
         if titles != expected_titles:
             raise SurfaceContractError(f"{headings[index]} rule titles drifted from rules.json")
+        for rule_index, (rule, meaning) in enumerate(zip(rules, meanings, strict=True), start=1):
+            if not isinstance(rule, dict):
+                raise SurfaceContractError("rules.json rules must be objects")
+            _validate_meaning_contract(rule, meaning, f"{headings[index]} rule {rule_index}")
         if "**Reflexive check:**" not in section:
             raise SurfaceContractError(f"{headings[index]} must retain its reflexive Rule 0 check")
 
